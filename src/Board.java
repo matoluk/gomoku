@@ -1,19 +1,22 @@
+enum Cell{
+    EMPTY,
+    PLAYER1,
+    PLAYER2
+}
+enum MoveResult{
+    NORMAL,
+    DENIED,
+    WIN
+}
 public class Board {
-    public enum Cell{
-        EMPTY,
-        PLAYER1,
-        PLAYER2
-    }
-    public enum MoveResult{
-        NORMAL,
-        DENIED,
-        WIN
-    }
     private Cell[][] board = new Cell[Settings.size][Settings.size];
     Board(){
         for (int i = 0; i < Settings.size; i++)
             for (int j = 0; j < Settings.size; j++)
                 board[i][j] = Cell.EMPTY;
+    }
+    public Cell[][] getBoard() {
+        return board;
     }
     public MoveResult move(Move move, Cell player){
         if (board[move.x][move.y] != Cell.EMPTY || player == Cell.EMPTY)

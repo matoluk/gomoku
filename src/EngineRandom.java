@@ -9,8 +9,7 @@ public class EngineRandom implements Engine {
     private final int myStone = 1;
     private final int opponentStone = 2;
     private final int mask = 3;
-    EngineRandom(Game game){
-        this.game = game;
+    EngineRandom(){
         board = new int[Settings.size];
         for (int i = 0; i < Settings.size; i++)
             board[i] = 0;
@@ -18,6 +17,12 @@ public class EngineRandom implements Engine {
     private int getCell(Move move){
         return (board[move.x] & (mask << (move.y * cellBitSize)));
     }
+
+    @Override
+    public void setGame(Game game) {
+        this.game = game;
+    }
+
     @Override
     public void opponentMove(Move move) {
         assert (getCell(move) == empty);
