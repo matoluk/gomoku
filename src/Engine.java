@@ -1,5 +1,5 @@
 public interface Engine {
-    void setGame(Game game);
+    void setUp(Game game, int id);
     void opponentMove(Move move);
     void go(int time, int opponentTime, int moveTime);  //milliseconds
     void stop();

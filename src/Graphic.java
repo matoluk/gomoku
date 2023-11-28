@@ -10,7 +10,7 @@ public class Graphic extends JFrame {
         this.setLocationRelativeTo(null);
         this.setVisible(true);
     }
-    public void move(Move move, Cell player){
-        panel.move(move, player);
+    public void move(Move move, Cell player, MoveResult type){
+        panel.move(move, player, type);
     }
 }

@@ -8,15 +8,25 @@ enum MoveResult{
     DENIED,
     WIN
 }
+class WinCells {
+    public Move from;
+    public int xDirection, yDirection;
+    WinCells(int x, int y, int xDirection, int yDirection){
+        from = new Move(x, y);
+        this.xDirection = xDirection;
+        this.yDirection = yDirection;
+    }
+}
 public class Board {
     private Cell[][] board = new Cell[Settings.size][Settings.size];
+    private WinCells winCells;
     Board(){
         for (int i = 0; i < Settings.size; i++)
             for (int j = 0; j < Settings.size; j++)
                 board[i][j] = Cell.EMPTY;
     }
-    public Cell[][] getBoard() {
-        return board;
+    public WinCells getWinCells() {
+        return winCells;
     }
     public MoveResult move(Move move, Cell player){
         if (board[move.x][move.y] != Cell.EMPTY || player == Cell.EMPTY)
@@ -33,8 +43,10 @@ public class Board {
         while(x < move.x + Settings.inRow){
             if (x >= 0 && x < Settings.size) {
                 count = (board[x][y] == player ? count + 1 : 0);
-                if (count >= Settings.inRow)
+                if (count >= Settings.inRow) {
+                    winCells = new WinCells(x, y, -1, 0);
                     return true;
+                }
             }
             x++;
         }
@@ -47,8 +59,10 @@ public class Board {
         while(y < move.y + Settings.inRow){
             if (y >= 0 && y < Settings.size) {
                 count = (board[x][y] == player ? count + 1 : 0);
-                if (count >= Settings.inRow)
+                if (count >= Settings.inRow) {
+                    winCells = new WinCells(x, y, 0, -1);
                     return true;
+                }
             }
             y++;
         }
@@ -61,8 +75,10 @@ public class Board {
         while(x < move.x + Settings.inRow){
             if (x >= 0 && x < Settings.size && y >= 0 && y < Settings.size) {
                 count = (board[x][y] == player ? count + 1 : 0);
-                if (count >= Settings.inRow)
+                if (count >= Settings.inRow) {
+                    winCells = new WinCells(x, y, -1, -1);
                     return true;
+                }
             }
             x++;
             y++;
@@ -76,8 +92,10 @@ public class Board {
         while(x < move.x + Settings.inRow){
             if (x >= 0 && x < Settings.size && y >= 0 && y < Settings.size) {
                 count = (board[x][y] == player ? count + 1 : 0);
-                if (count >= Settings.inRow)
+                if (count >= Settings.inRow) {
+                    winCells = new WinCells(x, y, -1, 1);
                     return true;
+                }
             }
             x++;
             y--;

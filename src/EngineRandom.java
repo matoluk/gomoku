@@ -2,6 +2,7 @@ import java.util.Random;
 
 public class EngineRandom implements Engine {
     private Game game;
+    private int id;
     private Move bestMove;
     private int[] board;
     private final int cellBitSize = 2;
@@ -19,8 +20,9 @@ public class EngineRandom implements Engine {
     }
 
     @Override
-    public void setGame(Game game) {
+    public void setUp(Game game, int id) {
         this.game = game;
+        this.id = id;
     }
 
     @Override
@@ -40,7 +42,8 @@ public class EngineRandom implements Engine {
 
     @Override
     public void stop() {
-        game.bestMove(bestMove);
+        game.bestMove(id, bestMove);
+        board[bestMove.x] += myStone << (bestMove.y * cellBitSize);
     }
 
     @Override

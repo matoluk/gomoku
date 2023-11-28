@@ -8,7 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BoardPanel extends JPanel {
-    private List<Shape> stones = new ArrayList<>();
+    private List<Shape> blue = new ArrayList<>();
+    private List<Shape> red = new ArrayList<>();
+    private List<Shape> darkBlue = new ArrayList<>();
+    private List<Shape> darkRed = new ArrayList<>();
     private GameHumanEngine game;
     BoardPanel(GameHumanEngine game){
         this.game = game;
@@ -19,12 +22,12 @@ public class BoardPanel extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 int x = (e.getX() - Settings.lineWidth/2) / Settings.cellSize;
                 int y = (e.getY() - Settings.lineWidth/2) / Settings.cellSize;
-                game.humanMove(new Move(x,y));
+                if (x >= 0 && y >= 0 && x < Settings.size && y < Settings.size)
+                    game.bestMove(0, new Move(x,y));
             }
         });
     }
     @Override
-
     public void paintComponent(Graphics g){
         super.paintComponent(g);
 
@@ -36,27 +39,39 @@ public class BoardPanel extends JPanel {
                 int y = Settings.lineWidth / 2 + j * Settings.cellSize;
                 g2D.drawRect(x, y, Settings.cellSize, Settings.cellSize);
             }
-        for (Shape shape : stones) {
-            if (shape instanceof Line2D)
-                g2D.setPaint(Color.blue);
-            else if (shape instanceof Ellipse2D)
-                g2D.setPaint(Color.red);
-            else
-                g2D.setPaint(Color.black);
+        g2D.setPaint(Color.blue);
+        for (Shape shape : blue)
             g2D.draw(shape);
-        }
+        g2D.setPaint(Color.red);
+        for (Shape shape : red)
+            g2D.draw(shape);
+        g2D.setPaint(new Color(0,0,127));
+        for (Shape shape : darkBlue)
+            g2D.draw(shape);
+        g2D.setPaint(new Color(127, 0, 0));
+        for (Shape shape : darkRed)
+            g2D.draw(shape);
     }
-    public void move(Move move, Cell player){
+    public void move(Move move, Cell player, MoveResult type){
         int x = Settings.lineWidth*3/2 + move.x * Settings.cellSize;
         int y = Settings.lineWidth*3/2 + move.y * Settings.cellSize;
         int width = Settings.cellSize - 2 * Settings.lineWidth;
 
         if (player == Cell.PLAYER1){
-            stones.add(new Line2D.Double(x, y, x + width, y + width));
-            stones.add(new Line2D.Double(x, y + width, x + width, y));
+            if (type == MoveResult.NORMAL) {
+                blue.add(new Line2D.Double(x, y, x + width, y + width));
+                blue.add(new Line2D.Double(x, y + width, x + width, y));
+            }if (type == MoveResult.WIN) {
+                darkBlue.add(new Line2D.Double(x, y, x + width, y + width));
+                darkBlue.add(new Line2D.Double(x, y + width, x + width, y));
+            }
         }
-        if (player == Cell.PLAYER2)
-            stones.add(new Ellipse2D.Double(x, y, width, width));
+        if (player == Cell.PLAYER2) {
+            if (type == MoveResult.NORMAL)
+                red.add(new Ellipse2D.Double(x, y, width, width));
+            if (type == MoveResult.WIN)
+                darkRed.add(new Ellipse2D.Double(x, y, width, width));
+        }
 
         repaint();
     }

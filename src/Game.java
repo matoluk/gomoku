@@ -1,3 +1,3 @@
 public interface Game {
-    void bestMove(Move move);
+    void bestMove(int id, Move move);
 }
