@@ -1,3 +1,5 @@
+package gomoku;
+
 public interface Engine {
     void setUp(Game game, int id);
     void opponentMove(Move move);

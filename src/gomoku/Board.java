@@ -1,3 +1,5 @@
+package gomoku;
+
 enum Cell{
     EMPTY,
     PLAYER1,

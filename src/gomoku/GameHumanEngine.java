@@ -1,3 +1,5 @@
+package gomoku;
+
 import java.util.concurrent.TimeUnit;
 
 public class GameHumanEngine implements Game{

@@ -1,3 +1,5 @@
+package gomoku;
+
 import javax.swing.*;
 
 public class Graphic extends JFrame {
