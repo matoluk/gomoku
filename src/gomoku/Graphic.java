@@ -1,11 +1,13 @@
 package gomoku;
 
 import javax.swing.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.Condition;
 
 public class Graphic extends JFrame {
     BoardPanel panel;
-    Graphic(GameHumanEngine game){
-        panel = new BoardPanel(game);
+    Graphic(GameHumanEngine game, Lock lock, Condition condition){
+        panel = new BoardPanel(game, lock, condition);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.add(panel);
         this.pack();

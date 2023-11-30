@@ -1,24 +1,41 @@
 package gomoku;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class GameHumanEngine implements Game{
     private Engine engine;
     private Graphic graphic;
     private Board board = new Board();
+    private final Lock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
     private MoveResult moveResult = MoveResult.NORMAL;
     private volatile boolean humanTurn;
     private int moveTime = 50;
     GameHumanEngine(Engine engine){
         this.engine = engine;
         engine.setUp(this, 1);
-        graphic = new Graphic(this);
+        graphic = new Graphic(this, lock, condition);
     }
     public void start(boolean humanStarts){
         humanTurn = humanStarts;
         while(moveResult == MoveResult.NORMAL) {
-            if (humanTurn)
-                while (humanTurn) Thread.onSpinWait();
+            if (humanTurn) {
+                try {
+                    lock.lock();
+                    try {
+                        while (humanTurn) {
+                            condition.await();
+                        }
+                    } finally {
+                        lock.unlock();
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            } //while (humanTurn) condition.await();
             else {
                 engine.go(-1, -1, -1);
                 try {

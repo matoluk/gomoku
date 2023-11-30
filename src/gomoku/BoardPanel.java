@@ -8,15 +8,21 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 
 public class BoardPanel extends JPanel {
+    private final Lock lock;
+    private final Condition condition;
     private List<Shape> blue = new ArrayList<>();
     private List<Shape> red = new ArrayList<>();
     private List<Shape> darkBlue = new ArrayList<>();
     private List<Shape> darkRed = new ArrayList<>();
     private GameHumanEngine game;
-    BoardPanel(GameHumanEngine game){
+    BoardPanel(GameHumanEngine game, Lock lock, Condition condition){
         this.game = game;
+        this.lock = lock;
+        this.condition = condition;
         int boardSize = Settings.size * Settings.cellSize + Settings.lineWidth;
         this.setPreferredSize(new Dimension(boardSize, boardSize));
         addMouseListener(new MouseAdapter() {
@@ -24,8 +30,15 @@ public class BoardPanel extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 int x = (e.getX() - Settings.lineWidth/2) / Settings.cellSize;
                 int y = (e.getY() - Settings.lineWidth/2) / Settings.cellSize;
-                if (x >= 0 && y >= 0 && x < Settings.size && y < Settings.size)
-                    game.bestMove(0, new Move(x,y));
+                if (x >= 0 && y >= 0 && x < Settings.size && y < Settings.size) {
+                    lock.lock();
+                    try {
+                        game.bestMove(0, new Move(x, y));
+                        condition.signal();
+                    } finally {
+                        lock.unlock();
+                    }
+                }
             }
         });
     }
