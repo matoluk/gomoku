@@ -12,17 +12,12 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 public class BoardPanel extends JPanel {
-    private final Lock lock;
-    private final Condition condition;
-    private List<Shape> blue = new ArrayList<>();
-    private List<Shape> red = new ArrayList<>();
-    private List<Shape> darkBlue = new ArrayList<>();
-    private List<Shape> darkRed = new ArrayList<>();
-    private GameHumanEngine game;
+    private final List<Shape> blue = new ArrayList<>();
+    private final List<Shape> red = new ArrayList<>();
+    private final List<Shape> darkBlue = new ArrayList<>();
+    private final List<Shape> darkRed = new ArrayList<>();
+
     BoardPanel(GameHumanEngine game, Lock lock, Condition condition){
-        this.game = game;
-        this.lock = lock;
-        this.condition = condition;
         int boardSize = Settings.size * Settings.cellSize + Settings.lineWidth;
         this.setPreferredSize(new Dimension(boardSize, boardSize));
         addMouseListener(new MouseAdapter() {

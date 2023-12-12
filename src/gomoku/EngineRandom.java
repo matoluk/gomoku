@@ -4,7 +4,7 @@ public class EngineRandom implements Engine, SetBestMove{
     private Game game;
     private int id;
     private Move bestMove;
-    private int[] board;
+    private final int[] board;
     public static final int cellBitSize = 2;
     public static final int empty = 0;
     public static final int myStone = 1;
@@ -37,7 +37,10 @@ public class EngineRandom implements Engine, SetBestMove{
     @Override
     public void go(int time, int opponentTime, int moveTime) {
         bestMove = null;
-        new EngineRandomSearch(board, this);
+        if (getCell(new Move(7,7)) == empty)
+            bestMove = new Move(7,7);
+        else
+            new EngineRandomSearch(board, this);
     }
 
     @Override

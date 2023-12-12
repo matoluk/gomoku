@@ -6,9 +6,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class GameHumanEngine implements Game{
-    private Engine engine;
-    private Graphic graphic;
-    private Board board = new Board();
+    private final Engine engine;
+    private final Graphic graphic;
+    private final Board board = new Board();
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private MoveResult moveResult = MoveResult.NORMAL;

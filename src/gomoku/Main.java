@@ -20,7 +20,7 @@ public class Main {
             GameHumanEngine game = new GameHumanEngine(engine);
             game.start(true);
         } else if (mode == 2) {
-            Engine engines[] = new Engine[2];
+            Engine[] engines = new Engine[2];
             for (int i = 0; i < 2; i++) {
                 System.out.println("Choose engine"+(i+1)+" (1-Random): ");
                 assert (scanner.hasNextInt());

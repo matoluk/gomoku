@@ -4,8 +4,8 @@ import java.util.Random;
 import static gomoku.EngineRandom.*;
 
 public class EngineRandomSearch implements Runnable{
-    private int[] board;
-    private SetBestMove engine;
+    private final int[] board;
+    private final SetBestMove engine;
     private Move bestMove;
     EngineRandomSearch(int[] board, SetBestMove engine){
         this.board = board;
