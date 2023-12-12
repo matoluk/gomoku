@@ -10,11 +10,13 @@ public class Main {
         int mode = scanner.nextInt();
         if (mode == 1){
             Engine engine;
-            System.out.println("Choose engine (1-Random): ");
+            System.out.println("Choose engine (1-Random), (2-Engine1): ");
             assert (scanner.hasNextInt());
             int type = scanner.nextInt();
-            if (type == 1){
+            if (type == 1) {
                 engine = new EngineRandom();
+            } else if (type == 2) {
+                engine = new Engine1();
             } else
                 return;
             GameHumanEngine game = new GameHumanEngine(engine);

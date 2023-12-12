@@ -10,10 +10,11 @@ enum MoveResult{
     DENIED,
     WIN
 }
-class WinCells {
+class LineOfSquares {
     public Move from;
     public int xDirection, yDirection;
-    WinCells(int x, int y, int xDirection, int yDirection){
+    public int values;
+    LineOfSquares(int x, int y, int xDirection, int yDirection){
         from = new Move(x, y);
         this.xDirection = xDirection;
         this.yDirection = yDirection;
@@ -21,13 +22,13 @@ class WinCells {
 }
 public class Board {
     private Cell[][] board = new Cell[Settings.size][Settings.size];
-    private WinCells winCells;
+    private LineOfSquares winCells;
     Board(){
         for (int i = 0; i < Settings.size; i++)
             for (int j = 0; j < Settings.size; j++)
                 board[i][j] = Cell.EMPTY;
     }
-    public WinCells getWinCells() {
+    public LineOfSquares getWinCells() {
         return winCells;
     }
     public MoveResult move(Move move, Cell player){
@@ -46,7 +47,7 @@ public class Board {
             if (x >= 0 && x < Settings.size) {
                 count = (board[x][y] == player ? count + 1 : 0);
                 if (count >= Settings.inRow) {
-                    winCells = new WinCells(x, y, -1, 0);
+                    winCells = new LineOfSquares(x, y, -1, 0);
                     return true;
                 }
             }
@@ -62,7 +63,7 @@ public class Board {
             if (y >= 0 && y < Settings.size) {
                 count = (board[x][y] == player ? count + 1 : 0);
                 if (count >= Settings.inRow) {
-                    winCells = new WinCells(x, y, 0, -1);
+                    winCells = new LineOfSquares(x, y, 0, -1);
                     return true;
                 }
             }
@@ -78,7 +79,7 @@ public class Board {
             if (x >= 0 && x < Settings.size && y >= 0 && y < Settings.size) {
                 count = (board[x][y] == player ? count + 1 : 0);
                 if (count >= Settings.inRow) {
-                    winCells = new WinCells(x, y, -1, -1);
+                    winCells = new LineOfSquares(x, y, -1, -1);
                     return true;
                 }
             }
@@ -95,7 +96,7 @@ public class Board {
             if (x >= 0 && x < Settings.size && y >= 0 && y < Settings.size) {
                 count = (board[x][y] == player ? count + 1 : 0);
                 if (count >= Settings.inRow) {
-                    winCells = new WinCells(x, y, -1, 1);
+                    winCells = new LineOfSquares(x, y, -1, 1);
                     return true;
                 }
             }
