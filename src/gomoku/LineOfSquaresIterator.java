@@ -33,7 +33,7 @@ public class LineOfSquaresIterator implements Iterator<LineOfSquares> {
         }
 
         LineOfSquares next = new LineOfSquares(x, y, xDirection, yDirection);
-        next.values = values % (length * AbstractEngine.cellBitSize);
+        next.values = values % (1 << length * AbstractEngine.cellBitSize);
 
         if (xDirection == 0 && yDirection == 1){
             if (y + length < Settings.size){
@@ -153,7 +153,7 @@ public class LineOfSquaresIterator implements Iterator<LineOfSquares> {
     public static void main(String[] args) {
         Settings.size = 3;
 
-        int[] board = {0, 11, 1};
+        int[] board = {63, 11, 1};
         LineOfSquaresIterator it = new LineOfSquaresIterator(board, 2);
 
         while (it.hasNext()) {
