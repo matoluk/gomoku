@@ -1,6 +1,9 @@
 package gomoku;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+
 import static gomoku.AbstractEngine.*;
 
 class Threat {
@@ -29,17 +32,68 @@ public class WinningThreatSequenceSearch implements Runnable{
     }
     @Override
     public void run() {
-        System.out.println(getThreats(myStone, 2).size());/*
-        ArrayList<Threat> threats = getThreats(myStone, 2);
-        for (Threat threat : threats)
-            System.out.println(threat.attackerMove.x + " " + threat.attackerMove.y);*/
+        int maxCategory = 2;
+        for (int i = 0; i < 100; i++){
+            ArrayList<Threat> opponentWinThreat = dbSearch(Arrays.copyOf(board, board.length), opponentStone,
+                    new ArrayList<Threat>(), getThreats(board, opponentStone, maxCategory), maxCategory, deep);
+            if (opponentWinThreat != null){
+                engine.setBestMove(opponentWinThreat.get(0).attackerMove);
+                for (Threat threat : opponentWinThreat)
+                    if (threat.category < maxCategory)
+                        maxCategory = threat.category;
+            }
+        }
+        for (int i = 0; i < 100; i++){
+            ArrayList<Threat> winThreat = dbSearch(Arrays.copyOf(board, board.length), myStone,
+                    new ArrayList<Threat>(), getThreats(board, myStone, maxCategory), maxCategory, deep);
+            if (winThreat != null){
+                System.out.println("Win in "+winThreat.size()+" turns");
+                engine.setBestMove(winThreat.get(0).attackerMove);
+                for (Threat threat : winThreat)
+                    if (threat.category < maxCategory)
+                        maxCategory = threat.category;
+            }
+        }
+    }
+
+    private ArrayList<Threat> dbSearch(int[] board, int attacker, ArrayList<Threat> playedThreats, ArrayList<Threat> threats, int maxCategory, int deep){
+        if (deep < 0)
+            return null;
+        ArrayList<Move> goalSet = new ArrayList<>();
+        for (Threat threat : threats){
+            if (!goalSet.contains(threat.attackerMove))
+                goalSet.add(threat.attackerMove);
+            else{
+                for (Threat t : threats)
+                    if (t.attackerMove == threat.attackerMove)
+                        playedThreats.add(t);
+                return playedThreats;
+            }
+        }
+        if (threats.isEmpty())
+            return null;
+
+        Random random = new Random();
+        int index = random.nextInt(threats.size()); //if memo, return
+        int x = threats.get(index).attackerMove.x;
+        int y = threats.get(index).attackerMove.y;
+        board[x] |= attacker << (y * cellBitSize);  //if no new threats, return
+        for (Move replay : threats.get(index).replayMoves)
+            board[replay.x] |= (3 - attacker) << (replay.y * cellBitSize);
+
+        playedThreats.add(threats.remove(index));
+        threats = getThreats(board, attacker, maxCategory);
+        return dbSearch(board, attacker, playedThreats, threats, maxCategory,deep-1);
     }
 
     private int getCell(int x, int y){
         return ((board[x] >> (y * cellBitSize)) & mask);
     }
+    private void setCell(Move move, int stone){
+        board[move.x] |= stone << (move.y * cellBitSize);
+    }
 
-    private ArrayList<Threat> getThreats(int attacker, int maxCategory){
+    private ArrayList<Threat> getThreats(int[] board, int attacker, int maxCategory){
         ArrayList<Threat> threats = new ArrayList<>();
         int defender = 3 - attacker;
 
@@ -54,22 +108,27 @@ public class WinningThreatSequenceSearch implements Runnable{
                 case 85: //_oooo
                     attackerMove = new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4);
                     threats.add(new Threat(line, attackerMove, replayMoves, 0));
+                    threats.add(new Threat(line, attackerMove, replayMoves, 0));//////
                     break;
                 case 277: //o_ooo
                     attackerMove = new Move(line.from.x + line.xDirection * 3, line.from.y + line.yDirection * 3);
                     threats.add(new Threat(line, attackerMove, replayMoves, 0));
+                    threats.add(new Threat(line, attackerMove, replayMoves, 0));//////
                     break;
                 case 325: //oo_oo
                     attackerMove = new Move(line.from.x + line.xDirection * 2, line.from.y + line.yDirection * 2);
                     threats.add(new Threat(line, attackerMove, replayMoves, 0));
+                    threats.add(new Threat(line, attackerMove, replayMoves, 0));//////
                     break;
                 case 337: //ooo_o
                     attackerMove = new Move(line.from.x + line.xDirection * 1, line.from.y + line.yDirection * 1);
                     threats.add(new Threat(line, attackerMove, replayMoves, 0));
+                    threats.add(new Threat(line, attackerMove, replayMoves, 0));//////
                     break;
                 case 340: //oooo_
                     attackerMove = new Move(line.from.x + line.xDirection * 0, line.from.y + line.yDirection * 0);
                     threats.add(new Threat(line, attackerMove, replayMoves, 0));
+                    threats.add(new Threat(line, attackerMove, replayMoves, 0));//////
                     break;
             }
             if (maxCategory == 0)
@@ -196,18 +255,22 @@ public class WinningThreatSequenceSearch implements Runnable{
                 case 84: //__ooo_
                     attackerMove = new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4);
                     threats.add(new Threat(line, attackerMove, replayMoves, 1));
+                    threats.add(new Threat(line, attackerMove, replayMoves, 1));//////
                     break;
                 case 276: //_o_oo_
                     attackerMove = new Move(line.from.x + line.xDirection * 3, line.from.y + line.yDirection * 3);
                     threats.add(new Threat(line, attackerMove, replayMoves, 1));
+                    threats.add(new Threat(line, attackerMove, replayMoves, 1));//////
                     break;
                 case 324: //_oo_o_
                     attackerMove = new Move(line.from.x + line.xDirection * 2, line.from.y + line.yDirection * 2);
                     threats.add(new Threat(line, attackerMove, replayMoves, 1));
+                    threats.add(new Threat(line, attackerMove, replayMoves, 1));//////
                     break;
                 case 336: //_ooo__
                     attackerMove = new Move(line.from.x + line.xDirection * 1, line.from.y + line.yDirection * 1);
                     threats.add(new Threat(line, attackerMove, replayMoves, 1));
+                    threats.add(new Threat(line, attackerMove, replayMoves, 1));//////
                     break;
             }
             if (maxCategory == 1)

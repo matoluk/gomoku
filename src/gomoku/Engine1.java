@@ -10,7 +10,7 @@ public class Engine1 extends AbstractEngine{
         bestMove = null;
         quickMove();
 
-        int deep = 2;
+        int deep = 10;
         new WinningThreatSequenceSearch(board, deep, this);
     }
     private void quickMove(){

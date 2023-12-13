@@ -13,7 +13,7 @@ public class GameHumanEngine implements Game{
     private final Condition condition = lock.newCondition();
     private MoveResult moveResult = MoveResult.NORMAL;
     private volatile boolean humanTurn;
-    private int moveTime = 50;
+    private int moveTime = 500;
     GameHumanEngine(Engine engine){
         this.engine = engine;
         engine.setUp(this, 1);
