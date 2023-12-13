@@ -10,6 +10,8 @@ public class Engine1 extends AbstractEngine{
         bestMove = null;
         quickMove();
 
+        int deep = 2;
+        new WinningThreatSequenceSearch(board, deep, this);
     }
     private void quickMove(){
         int[][] heuristic = new int[Settings.size][Settings.size];
