@@ -1,8 +1,13 @@
 package gomoku;
 
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+
 public abstract class AbstractEngine implements Engine, SetBestMove{
     private Game game;
     private int id;
+    private Lock lock;
+    private Condition condition;
     volatile Move bestMove;
     final int[] board;
     public static final int cellBitSize = 2;
@@ -15,7 +20,7 @@ public abstract class AbstractEngine implements Engine, SetBestMove{
         for (int i = 0; i < Settings.size; i++)
             board[i] = 0;
     }
-    int getCell(Move move){
+    public static int getCell(int[] board, Move move){
         return ((board[move.x] >> (move.y * cellBitSize)) & mask);
     }
     private void setCell(Move move, int stone){
@@ -23,14 +28,16 @@ public abstract class AbstractEngine implements Engine, SetBestMove{
     }
 
     @Override
-    public void setUp(Game game, int id) {
+    public void setUp(Game game, int id, Lock lock, Condition condition) {
         this.game = game;
         this.id = id;
+        this.lock = lock;
+        this.condition = condition;
     }
 
     @Override
     public void opponentMove(Move move) {
-        assert (getCell(move) == empty);
+        assert (getCell(board, move) == empty);
         setCell(move, opponentStone);
     }
 
@@ -41,9 +48,13 @@ public abstract class AbstractEngine implements Engine, SetBestMove{
 
     @Override
     public void stop() {
-        while (bestMove == null)
-            Thread.onSpinWait();
-        game.bestMove(id, bestMove);
+        lock.lock();
+        try {
+            game.bestMove(id, bestMove);
+            condition.signal();
+        } finally {
+            lock.unlock();
+        }
         setCell(bestMove, myStone);
     }
 

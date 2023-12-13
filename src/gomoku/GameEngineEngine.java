@@ -1,23 +1,22 @@
 package gomoku;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class GameHumanEngine implements Game{
+public class GameEngineEngine implements Game{
     private final Engine engine;
-    private final Graphic graphic;
+    //private final Graphic graphic;
     private final Board board = new Board();
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private MoveResult moveResult = MoveResult.NORMAL;
     private volatile boolean humanTurn;
     private int moveTime = 50;
-    GameHumanEngine(Engine engine){
+    GameEngineEngine(Engine engine){
         this.engine = engine;
         engine.setUp(this, 1, lock, condition);
-        graphic = new Graphic(this, lock, condition);
+        //graphic = new Graphic(this, lock, condition);
     }
     public void start(boolean humanStarts){
         humanTurn = humanStarts;
@@ -77,14 +76,14 @@ public class GameHumanEngine implements Game{
                 throw new RuntimeException();
         }
 
-        graphic.move(move, player, moveResult);
+        //graphic.move(move, player, moveResult);
         if (id == 0)
             engine.opponentMove(move);
         if(moveResult == MoveResult.WIN) {
             for (int i = 0; i < 5; i++) {
                 int x = board.getWinCells().from.x + i*board.getWinCells().xDirection;
                 int y = board.getWinCells().from.y + i*board.getWinCells().yDirection;
-                graphic.move(new Move(x, y), player, moveResult);
+                //graphic.move(new Move(x, y), player, moveResult);
             }
         }
         else

@@ -32,6 +32,7 @@ public class WinningThreatSequenceSearch implements Runnable{
     }
     @Override
     public void run() {
+        long start = System.currentTimeMillis();
         int maxCategory = 2;
         for (int i = 0; i < 100; i++){
             ArrayList<Threat> opponentWinThreat = dbSearch(Arrays.copyOf(board, board.length), opponentStone,
@@ -54,6 +55,8 @@ public class WinningThreatSequenceSearch implements Runnable{
                         maxCategory = threat.category;
             }
         }
+        System.out.println(System.currentTimeMillis() - start + " ms");
+        engine.stop();
     }
 
     private ArrayList<Threat> dbSearch(int[] board, int attacker, ArrayList<Threat> playedThreats, ArrayList<Threat> threats, int maxCategory, int deep){
@@ -86,14 +89,14 @@ public class WinningThreatSequenceSearch implements Runnable{
         return dbSearch(board, attacker, playedThreats, threats, maxCategory,deep-1);
     }
 
-    private int getCell(int x, int y){
+    static private int getCell(int[] board, int x, int y){
         return ((board[x] >> (y * cellBitSize)) & mask);
     }
     private void setCell(Move move, int stone){
         board[move.x] |= stone << (move.y * cellBitSize);
     }
 
-    private ArrayList<Threat> getThreats(int[] board, int attacker, int maxCategory){
+    static public ArrayList<Threat> getThreats(int[] board, int attacker, int maxCategory){
         ArrayList<Threat> threats = new ArrayList<>();
         int defender = 3 - attacker;
 
@@ -136,7 +139,7 @@ public class WinningThreatSequenceSearch implements Runnable{
             switch (line.values / attacker) {
                 case 21: //__ooo
                     if (line.from.x - line.xDirection < 0 || line.from.y - line.yDirection < 0 || line.from.y - line.yDirection >= Settings.size
-                            || getCell(line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
+                            || getCell(board, line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 3, line.from.y + line.yDirection * 3);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4)};
                         threats.add(new Threat(line, attackerMove, replayMoves, 1));
@@ -147,7 +150,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                     break;
                 case 69: //_o_oo
                     if (line.from.x - line.xDirection < 0 || line.from.y - line.yDirection < 0 || line.from.y - line.yDirection >= Settings.size
-                            || getCell(line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
+                            || getCell(board, line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 2, line.from.y + line.yDirection * 2);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4)};
                         threats.add(new Threat(line, attackerMove, replayMoves, 1));
@@ -158,7 +161,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                     break;
                 case 81: //_oo_o
                     if (line.from.x - line.xDirection < 0 || line.from.y - line.yDirection < 0 || line.from.y - line.yDirection >= Settings.size
-                            || getCell(line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
+                            || getCell(board, line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 1, line.from.y + line.yDirection * 1);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4)};
                         threats.add(new Threat(line, attackerMove, replayMoves, 1));
@@ -169,13 +172,13 @@ public class WinningThreatSequenceSearch implements Runnable{
                     break;
                 case 84: //_ooo_
                     if (line.from.x - line.xDirection < 0 || line.from.y - line.yDirection < 0 || line.from.y - line.yDirection >= Settings.size
-                            || getCell(line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
+                            || getCell(board, line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 0, line.from.y + line.yDirection * 0);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4)};
                         threats.add(new Threat(line, attackerMove, replayMoves, 1));
                     }
                     if (line.from.x + line.xDirection * 5 >= Settings.size || line.from.y + line.yDirection * 5 < 0 || line.from.y + line.yDirection * 5 >= Settings.size
-                            || getCell(line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5) == defender) {
+                            || getCell(board, line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 0, line.from.y + line.yDirection * 0)};
                         threats.add(new Threat(line, attackerMove, replayMoves, 1));
@@ -202,7 +205,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                     replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 3, line.from.y + line.yDirection * 3)};
                     threats.add(new Threat(line, attackerMove, replayMoves, 1));
                     if (line.from.x + line.xDirection * 5 >= Settings.size || line.from.y + line.yDirection * 5 < 0 || line.from.y + line.yDirection * 5 >= Settings.size
-                            || getCell(line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5) == defender) {
+                            || getCell(board, line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 3, line.from.y + line.yDirection * 3);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 0, line.from.y + line.yDirection * 0)};
                         threats.add(new Threat(line, attackerMove, replayMoves, 1));
@@ -221,7 +224,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                     replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 2, line.from.y + line.yDirection * 2)};
                     threats.add(new Threat(line, attackerMove, replayMoves, 1));
                     if (line.from.x + line.xDirection * 5 >= Settings.size || line.from.y + line.yDirection * 5 < 0 || line.from.y + line.yDirection * 5 >= Settings.size
-                            || getCell(line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5) == defender) {
+                            || getCell(board, line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 2, line.from.y + line.yDirection * 2);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 0, line.from.y + line.yDirection * 0)};
                         threats.add(new Threat(line, attackerMove, replayMoves, 1));
@@ -232,7 +235,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                     replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 1, line.from.y + line.yDirection * 1)};
                     threats.add(new Threat(line, attackerMove, replayMoves, 1));
                     if (line.from.x + line.xDirection * 5 >= Settings.size || line.from.y + line.yDirection * 5 < 0 || line.from.y + line.yDirection * 5 >= Settings.size
-                            || getCell(line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5) == defender) {
+                            || getCell(board, line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 1, line.from.y + line.yDirection * 1);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 0, line.from.y + line.yDirection * 0)};
                         threats.add(new Threat(line, attackerMove, replayMoves, 1));
@@ -278,7 +281,7 @@ public class WinningThreatSequenceSearch implements Runnable{
             switch (line.values / attacker) {
                 case 20: //___oo_
                     if (line.from.x - line.xDirection < 0 || line.from.y - line.yDirection < 0 || line.from.y - line.yDirection >= Settings.size
-                            || getCell(line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
+                            || getCell(board, line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 3, line.from.y + line.yDirection * 3);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4),
                                 new Move(line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5),
@@ -293,7 +296,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                     break;
                 case 68: //__o_o_
                     if (line.from.x - line.xDirection < 0 || line.from.y - line.yDirection < 0 || line.from.y - line.yDirection >= Settings.size
-                            || getCell(line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
+                            || getCell(board, line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 2, line.from.y + line.yDirection * 2);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4),
                                 new Move(line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5),
@@ -308,7 +311,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                     break;
                 case 80: //__oo__
                     if (line.from.x - line.xDirection < 0 || line.from.y - line.yDirection < 0 || line.from.y - line.yDirection >= Settings.size
-                            || getCell(line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
+                            || getCell(board, line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 1, line.from.y + line.yDirection * 1);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4),
                                 new Move(line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5),
@@ -316,7 +319,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                         threats.add(new Threat(line, attackerMove, replayMoves, 2));
                     }
                     if (line.from.x + line.xDirection * 6 >= Settings.size || line.from.y + line.yDirection * 6 < 0 || line.from.y + line.yDirection * 6 >= Settings.size
-                            || getCell(line.from.x + line.xDirection * 6, line.from.y + line.yDirection * 6) == defender) {
+                            || getCell(board, line.from.x + line.xDirection * 6, line.from.y + line.yDirection * 6) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 1, line.from.y + line.yDirection * 1),
                                 new Move(line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5),
@@ -343,7 +346,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                             new Move(line.from.x + line.xDirection * 0, line.from.y + line.yDirection * 0)};
                     threats.add(new Threat(line, attackerMove, replayMoves, 2));
                     if (line.from.x + line.xDirection * 6 >= Settings.size || line.from.y + line.yDirection * 6 < 0 || line.from.y + line.yDirection * 6 >= Settings.size
-                            || getCell(line.from.x + line.xDirection * 6, line.from.y + line.yDirection * 6) == defender) {
+                            || getCell(board, line.from.x + line.xDirection * 6, line.from.y + line.yDirection * 6) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 3, line.from.y + line.yDirection * 3);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 1, line.from.y + line.yDirection * 1),
                                 new Move(line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5),
@@ -358,7 +361,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                             new Move(line.from.x + line.xDirection * 0, line.from.y + line.yDirection * 0)};
                     threats.add(new Threat(line, attackerMove, replayMoves, 2));
                     if (line.from.x + line.xDirection * 6 >= Settings.size || line.from.y + line.yDirection * 6 < 0 || line.from.y + line.yDirection * 6 >= Settings.size
-                            || getCell(line.from.x + line.xDirection * 6, line.from.y + line.yDirection * 6) == defender) {
+                            || getCell(board, line.from.x + line.xDirection * 6, line.from.y + line.yDirection * 6) == defender) {
                         attackerMove = new Move(line.from.x + line.xDirection * 2, line.from.y + line.yDirection * 2);
                         replayMoves = new Move[]{new Move(line.from.x + line.xDirection * 1, line.from.y + line.yDirection * 1),
                                 new Move(line.from.x + line.xDirection * 5, line.from.y + line.yDirection * 5),

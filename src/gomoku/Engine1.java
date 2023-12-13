@@ -7,13 +7,12 @@ import java.util.Random;
 public class Engine1 extends AbstractEngine{
     @Override
     public void go(int time, int opponentTime, int moveTime) {
-        bestMove = null;
-        quickMove();
+        bestMove = quickMove(board);
 
         int deep = 10;
         new WinningThreatSequenceSearch(board, deep, this);
     }
-    private void quickMove(){
+    static public int[][] heuristic(int[] board, int player){
         int[][] heuristic = new int[Settings.size][Settings.size];
         for (int[] row : heuristic)
             Arrays.fill(row, 0);
@@ -23,11 +22,13 @@ public class Engine1 extends AbstractEngine{
         final int openTwo = 2;
         final int brokenTwo = 1;
 
-        assert empty == 0 && myStone == 1 && cellBitSize == 2;
+        assert empty == 0 && cellBitSize == 2;
         LineOfSquaresIterator it = new LineOfSquaresIterator(board, 6);
         while (it.hasNext()) {
             LineOfSquares line = it.next();
-            switch (line.values){
+            if (line.values % player != 0)
+                continue;
+            switch (line.values / player){
                 case 20:    //___oo_
                     heuristic[line.from.x + line.xDirection * 3][line.from.y + line.yDirection * 3] += three3;
                     heuristic[line.from.x + line.xDirection * 4][line.from.y + line.yDirection * 4] += brokenThree;
@@ -64,7 +65,9 @@ public class Engine1 extends AbstractEngine{
         it = new LineOfSquaresIterator(board, 7);
         while (it.hasNext()) {
             LineOfSquares line = it.next();
-            switch (line.values / myStone){
+            if (line.values % player != 0)
+                continue;
+            switch (line.values / player){
                 case 80:    //___oo__
                     heuristic[line.from.x + line.xDirection * 4][line.from.y + line.yDirection * 4] += three2 - 2*three3;
                     break;
@@ -83,6 +86,11 @@ public class Engine1 extends AbstractEngine{
             }
         }
 
+        return heuristic;
+    }
+    static public Move quickMove(int[] board){
+        int[][] heuristic = heuristic(board, myStone);
+
         int max = 1;
         ArrayList<Move> bestMoves = new ArrayList<>();
         for (int x = 0; x < heuristic.length; x++)
@@ -96,22 +104,22 @@ public class Engine1 extends AbstractEngine{
             }
 
         Random random = new Random();
-        if (bestMoves.isEmpty() && getCell(new Move(7, 7)) == empty)
+        if (bestMoves.isEmpty() && getCell(board, new Move(7, 7)) == empty)
             bestMoves.add(new Move(7, 7));
         while (bestMoves.isEmpty()){
             int x = random.nextInt(Settings.size - 2) + 1;
             int y = random.nextInt(Settings.size - 2) + 1;
-            if (getCell(new Move(x, y)) == empty
-                    &&(getCell(new Move(x-1, y-1)) != empty
-                    || getCell(new Move(x-1, y+1)) != empty
-                    || getCell(new Move(x+1, y-1)) != empty
-                    || getCell(new Move(x+1, y+1)) != empty
-                    || getCell(new Move(x-1, y)) != empty
-                    || getCell(new Move(x+1, y)) != empty
-                    || getCell(new Move(x, y-1)) != empty
-                    || getCell(new Move(x, y+1)) != empty))
+            if (getCell(board, new Move(x, y)) == empty
+                    &&(getCell(board, new Move(x-1, y-1)) != empty
+                    || getCell(board, new Move(x-1, y+1)) != empty
+                    || getCell(board, new Move(x+1, y-1)) != empty
+                    || getCell(board, new Move(x+1, y+1)) != empty
+                    || getCell(board, new Move(x-1, y)) != empty
+                    || getCell(board, new Move(x+1, y)) != empty
+                    || getCell(board, new Move(x, y-1)) != empty
+                    || getCell(board, new Move(x, y+1)) != empty))
                 bestMoves.add(new Move(x, y));
         }
-        bestMove = bestMoves.get(random.nextInt(bestMoves.size()));
+        return bestMoves.get(random.nextInt(bestMoves.size()));
     }
 }
