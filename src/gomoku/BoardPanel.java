@@ -17,25 +17,27 @@ public class BoardPanel extends JPanel {
     private final List<Shape> darkBlue = new ArrayList<>();
     private final List<Shape> darkRed = new ArrayList<>();
 
-    BoardPanel(GameHumanEngine game, Lock lock, Condition condition){
+    BoardPanel(Game game, Lock lock, Condition condition, boolean humanPlays){
         int boardSize = Settings.size * Settings.cellSize + Settings.lineWidth;
         this.setPreferredSize(new Dimension(boardSize, boardSize));
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int x = (e.getX() - Settings.lineWidth/2) / Settings.cellSize;
-                int y = (e.getY() - Settings.lineWidth/2) / Settings.cellSize;
-                if (x >= 0 && y >= 0 && x < Settings.size && y < Settings.size) {
-                    lock.lock();
-                    try {
-                        game.bestMove(0, new Move(x, y));
-                        condition.signal();
-                    } finally {
-                        lock.unlock();
+        if (humanPlays) {
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    int x = (e.getX() - Settings.lineWidth / 2) / Settings.cellSize;
+                    int y = (e.getY() - Settings.lineWidth / 2) / Settings.cellSize;
+                    if (x >= 0 && y >= 0 && x < Settings.size && y < Settings.size) {
+                        lock.lock();
+                        try {
+                            game.bestMove(0, new Move(x, y));
+                            condition.signal();
+                        } finally {
+                            lock.unlock();
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     }
     @Override
     public void paintComponent(Graphics g){

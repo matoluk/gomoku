@@ -10,10 +10,12 @@ public class EngineAB extends AbstractEngine{
     public void go(int time, int opponentTime, int moveTime) {
         turn++;
         if (turn < 3) {
+            long startTime = System.currentTimeMillis();
             bestMove = Engine1.quickMove(board);
+            System.out.println("RED  ab search " + (System.currentTimeMillis() - startTime) + " ms");
             stop();
         }else
-            new EngineABSearch(board, 5, this);
+            new EngineABSearch(board, 4, this);
     }
 }
 class EngineABSearch implements Runnable{
@@ -58,7 +60,7 @@ class EngineABSearch implements Runnable{
                 for (row >>= cellBitSize; row > 0; row >>= cellBitSize)
                     y++;
                 engine.setBestMove(new Move(x, y));
-                System.out.println(System.currentTimeMillis() - startTime + " ms");
+                System.out.println("RED ab search  " + (System.currentTimeMillis() - startTime) + " ms");
                 engine.stop();
                 return;
             }

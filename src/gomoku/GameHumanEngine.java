@@ -17,7 +17,7 @@ public class GameHumanEngine implements Game{
     GameHumanEngine(Engine engine){
         this.engine = engine;
         engine.setUp(this, 1, lock, condition);
-        graphic = new Graphic(this, lock, condition);
+        graphic = new Graphic(this, lock, condition, true);
     }
     public void start(boolean humanStarts){
         humanTurn = humanStarts;

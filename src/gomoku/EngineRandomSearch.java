@@ -27,5 +27,6 @@ public class EngineRandomSearch implements Runnable{
         }
         bestMove = new Move(x, y);
         engine.setBestMove(bestMove);
+        engine.stop();
     }
 }

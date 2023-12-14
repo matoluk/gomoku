@@ -9,34 +9,30 @@ public class Main {
         assert (scanner.hasNextInt());
         int mode = scanner.nextInt();
         if (mode == 1){
-            Engine engine;
-            System.out.println("Choose engine (1-Random), (2-Engine1), (3-EngineAB): ");
-            assert (scanner.hasNextInt());
-            int type = scanner.nextInt();
-            if (type == 1) {
-                engine = new EngineRandom();
-            } else if (type == 2) {
-                engine = new Engine1();
-            } else if (type == 3) {
-                engine = new EngineAB();
-            } else
+            Engine engine = chooseEngine(scanner);
+            if (engine == null)
                 return;
             GameHumanEngine game = new GameHumanEngine(engine);
             game.start(true);
         } else if (mode == 2) {
-            Engine[] engines = new Engine[2];
-            for (int i = 0; i < 2; i++) {
-                System.out.println("Choose engine"+(i+1)+" (1-Random): ");
-                assert (scanner.hasNextInt());
-                int type = scanner.nextInt();
-                if (type == 1) {
-                    engines[1] = new EngineRandom();
-                } else
-                    return;
-            }
-            //GameEngineEngine game = new GameEngineEngine(engines);
-            //game.start(true);
+            Engine[] engines = {chooseEngine(scanner), chooseEngine(scanner)};
+            if (engines[0] == null || engines[1] == null)
+                return;
+            GameEngineEngine game = new GameEngineEngine(engines);
+            game.start(0);
         }
+    }
+    private static Engine chooseEngine(Scanner scanner){
+        System.out.println("Choose engine (1-Random), (2-Engine1), (3-EngineAB): ");
+        assert (scanner.hasNextInt());
+        int type = scanner.nextInt();
+        if (type == 1)
+            return new EngineRandom();
+        if (type == 2)
+            return new Engine1();
+        if (type == 3)
+            return new EngineAB();
+        return null;
     }
     private static void human(){
 

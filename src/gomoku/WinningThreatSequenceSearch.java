@@ -55,7 +55,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                         maxCategory = threat.category;
             }
         }
-        System.out.println(System.currentTimeMillis() - start + " ms");
+        System.out.println("BLUE my search " + (System.currentTimeMillis() - start) + " ms");
         engine.stop();
     }
 

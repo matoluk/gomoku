@@ -6,8 +6,8 @@ import java.util.concurrent.locks.Condition;
 
 public class Graphic extends JFrame {
     BoardPanel panel;
-    Graphic(GameHumanEngine game, Lock lock, Condition condition){
-        panel = new BoardPanel(game, lock, condition);
+    Graphic(Game game, Lock lock, Condition condition, boolean humanPlays){
+        panel = new BoardPanel(game, lock, condition, humanPlays);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.add(panel);
         this.pack();
