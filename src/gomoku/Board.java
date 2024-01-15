@@ -1,29 +1,10 @@
 package gomoku;
 
-enum Cell{
-    EMPTY,
-    PLAYER1,
-    PLAYER2
-}
-enum MoveResult{
-    NORMAL,
-    DENIED,
-    WIN
-}
-class LineOfSquares {
-    public Move from;
-    public int xDirection, yDirection;
-    public int values;
-    LineOfSquares(int x, int y, int xDirection, int yDirection){
-        from = new Move(x, y);
-        this.xDirection = xDirection;
-        this.yDirection = yDirection;
-    }
-}
 public class Board {
-    private Cell[][] board = new Cell[Settings.size][Settings.size];
+    private final Cell[][] board;
     private LineOfSquares winCells;
     Board(){
+        board = new Cell[Settings.size][Settings.size];
         for (int i = 0; i < Settings.size; i++)
             for (int j = 0; j < Settings.size; j++)
                 board[i][j] = Cell.EMPTY;

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-public class Engine1 extends AbstractEngine{
+public class EngineTS extends AbstractEngine{
     @Override
     public void go(int time, int opponentTime, int moveTime) {
         bestMove = quickMove(board);
@@ -12,7 +12,7 @@ public class Engine1 extends AbstractEngine{
         int deep = 10;
         new WinningThreatSequenceSearch(board, deep, this);
     }
-    static public int[][] heuristic(int[] board, int player){
+    static public int[][] cellsRating(int[] board, int player){
         int[][] heuristic = new int[Settings.size][Settings.size];
         for (int[] row : heuristic)
             Arrays.fill(row, 0);
@@ -28,37 +28,35 @@ public class Engine1 extends AbstractEngine{
             LineOfSquares line = it.next();
             if (line.values % player != 0)
                 continue;
-            switch (line.values / player){
-                case 20:    //___oo_
+            switch (line.values / player) {
+                case 20 -> {    //___oo_
                     heuristic[line.from.x + line.xDirection * 3][line.from.y + line.yDirection * 3] += three3;
                     heuristic[line.from.x + line.xDirection * 4][line.from.y + line.yDirection * 4] += brokenThree;
-                    break;
-                case 68:    //__o_o_
+                }
+                case 68 -> {    //__o_o_
                     heuristic[line.from.x + line.xDirection * 2][line.from.y + line.yDirection * 2] += three3;
                     heuristic[line.from.x + line.xDirection * 4][line.from.y + line.yDirection * 4] += brokenThree;
-                    break;
-                case 80:    //__oo__
+                }
+                case 80 -> {    //__oo__
                     heuristic[line.from.x + line.xDirection * 1][line.from.y + line.yDirection * 1] += three3;
                     heuristic[line.from.x + line.xDirection * 4][line.from.y + line.yDirection * 4] += three3;
-                    break;
-                case 272:   //_o_o__
+                }
+                case 272 -> {   //_o_o__
                     heuristic[line.from.x + line.xDirection * 1][line.from.y + line.yDirection * 1] += brokenThree;
                     heuristic[line.from.x + line.xDirection * 3][line.from.y + line.yDirection * 3] += three3;
-                    break;
-                case 320:   //_oo___
+                }
+                case 320 -> {   //_oo___
                     heuristic[line.from.x + line.xDirection * 1][line.from.y + line.yDirection * 1] += brokenThree;
                     heuristic[line.from.x + line.xDirection * 2][line.from.y + line.yDirection * 2] += three3;
-                    break;
-                case 260:   //_o__o_
+                }
+                case 260 -> {   //_o__o_
                     heuristic[line.from.x + line.xDirection * 2][line.from.y + line.yDirection * 2] += brokenThree;
                     heuristic[line.from.x + line.xDirection * 3][line.from.y + line.yDirection * 3] += brokenThree;
-                    break;
-                case 16:   //___o__
-                    heuristic[line.from.x + line.xDirection * 3][line.from.y + line.yDirection * 3] += openTwo;
-                    break;
-                case 64:   //__o___
-                    heuristic[line.from.x + line.xDirection * 2][line.from.y + line.yDirection * 2] += openTwo;
-                    break;
+                }
+                case 16 ->   //___o__
+                        heuristic[line.from.x + line.xDirection * 3][line.from.y + line.yDirection * 3] += openTwo;
+                case 64 ->   //__o___
+                        heuristic[line.from.x + line.xDirection * 2][line.from.y + line.yDirection * 2] += openTwo;
             }
         }
 
@@ -89,17 +87,17 @@ public class Engine1 extends AbstractEngine{
         return heuristic;
     }
     static public Move quickMove(int[] board){
-        int[][] heuristic = heuristic(board, myStone);
+        int[][] cellsRating = cellsRating(board, myStone);
 
         int max = 1;
         ArrayList<Move> bestMoves = new ArrayList<>();
-        for (int x = 0; x < heuristic.length; x++)
-            for (int y = 0; y < heuristic[x].length; y++){
-                if (heuristic[x][y] > max){
-                    max = heuristic[x][y];
+        for (int x = 0; x < cellsRating.length; x++)
+            for (int y = 0; y < cellsRating[x].length; y++){
+                if (cellsRating[x][y] > max){
+                    max = cellsRating[x][y];
                     bestMoves.clear();
                 }
-                if (heuristic[x][y] == max)
+                if (cellsRating[x][y] == max)
                     bestMoves.add(new Move(x, y));
             }
 
