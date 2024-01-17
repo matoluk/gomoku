@@ -48,14 +48,14 @@ public class WinningThreatSequenceSearch implements Runnable{
             ArrayList<Threat> winThreat = dbSearch(Arrays.copyOf(board, board.length), myStone,
                     new ArrayList<Threat>(), getThreats(board, myStone, maxCategory), maxCategory, deep);
             if (winThreat != null){
-                System.out.println("Win in "+winThreat.size()+" turns");
+                //System.out.println("Win in "+winThreat.size()+" turns");
                 engine.setBestMove(winThreat.get(0).attackerMove);
                 for (Threat threat : winThreat)
                     if (threat.category < maxCategory)
                         maxCategory = threat.category;
             }
         }
-        System.out.println("BLUE my search " + (System.currentTimeMillis() - start) + " ms");
+        //System.out.println("BLUE my search " + (System.currentTimeMillis() - start) + " ms");
         engine.stop();
     }
 

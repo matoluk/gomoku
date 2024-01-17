@@ -5,7 +5,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Choose game mode (1-HumanVSEngine, 2-EngineVSEngine): ");
+        System.out.println("Choose game mode (1-HumanVSEngine, 2-EngineVSEngine, 3-EnginesTournament): ");
         assert (scanner.hasNextInt());
         int mode = scanner.nextInt();
         if (mode == 1){
@@ -14,12 +14,25 @@ public class Main {
                 return;
             GameHumanEngine game = new GameHumanEngine(engine);
             game.start(true);
-        } else if (mode == 2) {
+        } else if (mode == 2 || mode == 3) {
+            int games = 1;
+            if (mode == 3) {
+                System.out.println("Games count: ");
+                assert (scanner.hasNextInt());
+                games = scanner.nextInt();
+            }
             Engine[] engines = {chooseEngine(scanner), chooseEngine(scanner)};
             if (engines[0] == null || engines[1] == null)
                 return;
-            GameEngineEngine game = new GameEngineEngine(engines);
-            game.start(0);
+
+            System.out.print("Remaining games:");
+            while (games-- > 0) {
+                System.out.print(" "+games);
+                GameEngineEngine game = new GameEngineEngine(engines);
+                game.start(0);
+            }
+            System.out.println();
+            Data.getInstance().printAvgTurnDuration();
         }
     }
     private static Engine chooseEngine(Scanner scanner){

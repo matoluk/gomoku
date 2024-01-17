@@ -8,7 +8,9 @@ public class EngineABSearch implements Runnable{
     private final int[] board;
     private final SetBestMove engine;
     private int deep;
-    EngineABSearch(int[] board, int deep, SetBestMove engine){
+    private int id;
+    EngineABSearch(int[] board, int deep, SetBestMove engine, int id){
+        this.id = id;
         this.board = board;
         this.engine = engine;
         this.deep = deep;
@@ -22,17 +24,22 @@ public class EngineABSearch implements Runnable{
 
         int[] bestMove = bestMove(board, deep);
         if (bestMove == null) {
-            System.out.println("well played!");
+            //System.out.println("well played!");
             bestMove = bestMove(board, 2);
             if (bestMove == null) {
-                System.out.println("bye!");
+                //System.out.println("bye!");
                 bestMove = bestMove(board, 1);
             }
         }
 
         engine.setBestMove(getMove(board, bestMove));
-        System.out.println("Engine"+ (getCell(board, new Move(7,7)) == myStone ? "0" : "1") + " " + (System.currentTimeMillis() - startTime) + " ms");
+        //System.out.println("Engine"+ (getCell(board, new Move(7,7)) == myStone ? "0" : "1") + " " + (System.currentTimeMillis() - startTime) + " ms");
         engine.stop();
+        //Data.getInstance().turns++;
+        //Data.getInstance().plDur[0] += System.currentTimeMillis() - startTime;
+        //Data.getInstance().printABsearch(id);
+        //Data.getInstance().printHeuristic();
+        //Data.getInstance().printTurnLength();
     }
     private Move getMove(int[] board, int[] newBoard){
         for (int x = 0; x < board.length; x++){
@@ -52,8 +59,9 @@ public class EngineABSearch implements Runnable{
         MoveIterator it = new MoveIterator(board, myStone);
         while (it.hasNext()){
             int[] move = it.next();
-            if (deep > 2)
-                System.out.print(getMove(board, move)+" ");
+            if (deep > 2) {
+                //System.out.print(getMove(board, move)+" ");
+            }
             float score = abSearch(move, deep-1, opponentStone, myMax, 1);
             if (score > myMax) {
                 myMax = score;
@@ -63,7 +71,8 @@ public class EngineABSearch implements Runnable{
         return bestMove;
     }
     private float abSearch(int[] board, int deep, int player, float max, float min){
-        System.out.print(deep + "," + max + "," + min + "|");
+        Data.getInstance().abSearch[id]++;
+        //System.out.print(deep + "," + max + "," + min + "|");
         float score = heuristic(board);
         if (deep <= 0 || score == 1 || score == -1)
             return score;
@@ -96,13 +105,18 @@ public class EngineABSearch implements Runnable{
         throw new IllegalArgumentException("player should be 1 or 2");
     }
     private float heuristic(int[] board){
+        long start = System.nanoTime();
+        Data.getInstance().heuristicCount++;
         LineOfSquaresIterator it = new LineOfSquaresIterator(board, 5);
         while (it.hasNext()) {
             int value = it.next().values;
-            if (value == 341)
+            if (value == 341) {
+                Data.getInstance().heuristicTime += System.nanoTime() - start;
                 return 1;
-            if (value == 682)
+            }if (value == 682) {
+                Data.getInstance().heuristicTime += System.nanoTime() - start;
                 return -1;
+            }
         }
         float myThreat0 = WinningThreatSequenceSearch.getThreats(board, myStone,0).size();
         float opThreat0 = WinningThreatSequenceSearch.getThreats(board, opponentStone,0).size();
@@ -112,6 +126,7 @@ public class EngineABSearch implements Runnable{
         float opThreat2 = WinningThreatSequenceSearch.getThreats(board, opponentStone,2).size() - opThreat1 - opThreat0;
         float myScore = myThreat2 + 10*myThreat1 + 100*myThreat0;
         float opScore = opThreat2 + 10*opThreat1 + 100*opThreat0;
+        Data.getInstance().heuristicTime += System.nanoTime() - start;
         if (myScore == opScore)
             return 0;
         return (myScore - opScore) / (myScore + opScore + 1);
@@ -120,7 +135,7 @@ public class EngineABSearch implements Runnable{
     private int global = 0;
     class MoveIterator implements Iterator<int[]> {
         private TreeMap<Float, ArrayList<int[]>> moves;
-        private final int id;
+        //private final int id;
         public MoveIterator(int[] board, int player) {
             if (player == myStone)
                 moves = new TreeMap<>(Comparator.reverseOrder());
@@ -151,14 +166,23 @@ public class EngineABSearch implements Runnable{
                 moves.put((float) 1, newArray);
                 moves.put((float) -1, newArray);
             }
-            id = global++;
-            if (id == 0)
-                System.out.print("It start: ");
+            //id = global++;
+            if (id == 0) {
+                //System.out.print("It start: ");
+            }
+            int near = 0;
+            for (float score: moves.keySet())
+                if (score != moves.lastKey()){
+                    near += moves.get(score).size();
+                }
+            Data.getInstance().nearCells[id] += near;
+            Data.getInstance().moveIterator[id]++;
         }
         @Override
         public boolean hasNext() {
-            if (id == 0 && moves.size() <= 1)
-                System.out.println("End");
+            if (id == 0 && moves.size() <= 1) {
+                //System.out.println("End");
+            }
             return moves.size() > 1;
         }
 
@@ -166,8 +190,9 @@ public class EngineABSearch implements Runnable{
         public int[] next() {
             if (!hasNext())
                 throw new NoSuchElementException();
-            if (id == 0)
-                System.out.print(moves.size());
+            if (id == 0) {
+                //System.out.print(moves.size());
+            }
 
             ArrayList<int[]> nextMoves = moves.get(moves.firstKey());
             int[] next = nextMoves.remove(nextMoves.size() - 1);

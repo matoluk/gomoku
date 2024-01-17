@@ -5,21 +5,16 @@ import java.util.concurrent.locks.Lock;
 
 public abstract class AbstractEngine implements Engine, SetBestMove{
     private Game game;
-    private int id;
+    int id;
     private Lock lock;
     private Condition condition;
     volatile Move bestMove;
-    final int[] board;
+    int[] board;
     public static final int cellBitSize = 2;
     public static final int empty = 0;
     public static final int myStone = 1;
     public static final int opponentStone = 2;
     public static final int mask = 3;
-    AbstractEngine(){
-        board = new int[Settings.size];
-        for (int i = 0; i < Settings.size; i++)
-            board[i] = 0;
-    }
     public static int getCell(int[] board, Move move){
         return ((board[move.x] >> (move.y * cellBitSize)) & mask);
     }
@@ -29,6 +24,9 @@ public abstract class AbstractEngine implements Engine, SetBestMove{
 
     @Override
     public void setUp(Game game, int id, Lock lock, Condition condition) {
+        board = new int[Settings.size];
+        for (int i = 0; i < Settings.size; i++)
+            board[i] = 0;
         this.game = game;
         this.id = id;
         this.lock = lock;
