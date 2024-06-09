@@ -132,7 +132,7 @@ public class LineOfSqVariableLengthIt implements Iterator<LineOfSquares> {
                 y = Settings.size - 1;
                 values = 0;
                 maxLength = Settings.size - x;
-                for (int i = 0; i < minLength; i++){
+                for (int i = 0; i < maxLength; i++){
                     values |= ((board[x+i] >> ((y-i) * AbstractEngine.cellBitSize)) & AbstractEngine.mask) << (i * AbstractEngine.cellBitSize);
                 }
                 return next;
