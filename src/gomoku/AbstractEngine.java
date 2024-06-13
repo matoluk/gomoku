@@ -1,5 +1,7 @@
 package gomoku;
 
+import jdk.jshell.spi.ExecutionControl;
+
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
@@ -37,6 +39,11 @@ public abstract class AbstractEngine implements Engine, SetBestMove{
     public void opponentMove(Move move) {
         assert (getCell(board, move) == empty);
         setCell(move, opponentStone);
+    }
+
+    @Override
+    public Object[] getMemory() {
+        throw new RuntimeException("Not implemented");
     }
 
     @Override

@@ -107,7 +107,7 @@ public class WinningThreatSequenceSearch implements Runnable{
             Move[] replayMoves = {};
             if (line.values % attacker != 0)
                 continue;
-            switch (line.values / attacker) {
+            switch (line.values / attacker) { //five
                 case 85: //_oooo
                     attackerMove = new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4);
                     threats.add(new Threat(line, attackerMove, replayMoves, 0));
@@ -136,7 +136,7 @@ public class WinningThreatSequenceSearch implements Runnable{
             }
             if (maxCategory == 0)
                 continue;
-            switch (line.values / attacker) {
+            switch (line.values / attacker) { //broken four
                 case 21: //__ooo
                     if (line.from.x - line.xDirection < 0 || line.from.y - line.yDirection < 0 || line.from.y - line.yDirection >= Settings.size
                             || getCell(board, line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
@@ -254,7 +254,7 @@ public class WinningThreatSequenceSearch implements Runnable{
             Move[] replayMoves = {};
             if (line.values % attacker != 0)
                 continue;
-            switch (line.values / attacker) {
+            switch (line.values / attacker) { //straight four (double threat)
                 case 84: //__ooo_
                     attackerMove = new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4);
                     threats.add(new Threat(line, attackerMove, replayMoves, 1));
@@ -278,7 +278,7 @@ public class WinningThreatSequenceSearch implements Runnable{
             }
             if (maxCategory == 1)
                 continue;
-            switch (line.values / attacker) {
+            switch (line.values / attacker) { // broken three
                 case 20: //___oo_
                     if (line.from.x - line.xDirection < 0 || line.from.y - line.yDirection < 0 || line.from.y - line.yDirection >= Settings.size
                             || getCell(board, line.from.x - line.xDirection, line.from.y - line.yDirection) == defender) {
@@ -384,7 +384,7 @@ public class WinningThreatSequenceSearch implements Runnable{
                     new Move(line.from.x + line.xDirection * 1, line.from.y + line.yDirection * 1)};
             if (line.values % attacker != 0)
                 continue;
-            switch (line.values / attacker) {
+            switch (line.values / attacker) { // straight three
                 case 80: //___oo__
                     attackerMove = new Move(line.from.x + line.xDirection * 4, line.from.y + line.yDirection * 4);
                     threats.add(new Threat(line, attackerMove, replayMoves, 2));

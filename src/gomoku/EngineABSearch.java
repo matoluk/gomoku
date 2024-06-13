@@ -7,13 +7,25 @@ import static gomoku.AbstractEngine.*;
 public class EngineABSearch implements Runnable{
     private final int[] board;
     private final SetBestMove engine;
-    private int deep;
-    private int id;
-    EngineABSearch(int[] board, int deep, SetBestMove engine, int id){
-        this.id = id;
+    private final int deep;
+    private final int id;
+    private final int heuristic;
+    Map<ArrayInt, PositionScore> memo;
+    Map<ArrayInt, PositionScore> oldMemo;
+    private final Data data = Data.getInstance();
+    EngineABSearch(int[] board, int deep, SetBestMove engine, int idEngine, int heuristic){
+        this.id = idEngine;
         this.board = board;
         this.engine = engine;
         this.deep = deep;
+        this.heuristic = heuristic;
+
+        Object[] memory = engine.getMemory();
+        memory[1] = memory[0];
+        memory[0] = new HashMap<ArrayInt, PositionScore>();
+        memo = (Map<ArrayInt, PositionScore>) memory[0];
+        oldMemo = (Map<ArrayInt, PositionScore>) memory[1];
+
         Thread search = new Thread(this);
         search.start();
     }
@@ -33,13 +45,20 @@ public class EngineABSearch implements Runnable{
         }
 
         engine.setBestMove(getMove(board, bestMove));
-        //System.out.println("Engine"+ (getCell(board, new Move(7,7)) == myStone ? "0" : "1") + " " + (System.currentTimeMillis() - startTime) + " ms");
         engine.stop();
-        //Data.getInstance().turns++;
-        //Data.getInstance().plDur[0] += System.currentTimeMillis() - startTime;
-        //Data.getInstance().printABsearch(id);
-        //Data.getInstance().printHeuristic();
-        //Data.getInstance().printTurnLength();
+
+        //int[] fakeBoard = new int[16];
+        //System.arraycopy(bestMove, 0, fakeBoard, 0, 15);
+        //float[] pl = PositionEvaluate.getPosScore(fakeBoard).pl;
+        //System.out.println("  SCORE red: " + pl[0] + " blue: " +pl[1]);
+
+        data.turns++;
+        //data.plDur[id] += System.currentTimeMillis() - startTime;
+        data.printABsearch(id);
+        //data.printHeuristic();
+        //data.printTurnLength();
+        //data.printTurn();
+        data.printMemo();
     }
     private Move getMove(int[] board, int[] newBoard){
         for (int x = 0; x < board.length; x++){
@@ -71,9 +90,19 @@ public class EngineABSearch implements Runnable{
         return bestMove;
     }
     private float abSearch(int[] board, int deep, int player, float max, float min){
-        Data.getInstance().abSearch[id]++;
+        data.abSearch[id]++;
         //System.out.print(deep + "," + max + "," + min + "|");
-        float score = heuristic(board);
+
+        //long start = System.nanoTime();
+        float score;
+        switch (heuristic) {
+            case 1 -> score = heuristic(board);
+            case 2 -> score = heuristic2(board);
+            default -> throw new IllegalArgumentException();
+        }
+        //data.heuristicCount++;
+        //data.heuristicTime += System.nanoTime() - start;
+
         if (deep <= 0 || score == 1 || score == -1)
             return score;
 
@@ -104,17 +133,41 @@ public class EngineABSearch implements Runnable{
 
         throw new IllegalArgumentException("player should be 1 or 2");
     }
+    private float heuristic2(int[] board){
+        ArrayInt arrBoard = new ArrayInt(board);
+        if (memo.containsKey(arrBoard)) {
+            data.memo++;
+            return memo.get(arrBoard).score;
+        }
+        PositionScore posScore;
+        if (oldMemo.containsKey(arrBoard)) {
+            data.oldMemo++;
+            posScore = oldMemo.get(arrBoard);
+        }
+        else
+            posScore = PositionEvaluate.getPosScore(board);
+        memo.put(arrBoard, posScore);
+        return posScore.score;
+    }
     private float heuristic(int[] board){
-        long start = System.nanoTime();
-        Data.getInstance().heuristicCount++;
+        //long start = System.nanoTime();
+        //data.heuristicCount++;
+
+        /*ArrayInt boardMemo = new ArrayInt(board);
+        if (data.heuristicMemo.containsKey(boardMemo))
+            return data.heuristicMemo.get(boardMemo);
+        boardMemo.copy();*/
+
         LineOfSquaresIterator it = new LineOfSquaresIterator(board, 5);
         while (it.hasNext()) {
             int value = it.next().values;
             if (value == 341) {
-                Data.getInstance().heuristicTime += System.nanoTime() - start;
+                //data.heuristicTime += System.nanoTime() - start;
+                //data.heuristicMemo.put(boardMemo, (float) 1);
                 return 1;
             }if (value == 682) {
-                Data.getInstance().heuristicTime += System.nanoTime() - start;
+                //data.heuristicTime += System.nanoTime() - start;
+                //data.heuristicMemo.put(boardMemo, (float) -1);
                 return -1;
             }
         }
@@ -126,13 +179,16 @@ public class EngineABSearch implements Runnable{
         float opThreat2 = WinningThreatSequenceSearch.getThreats(board, opponentStone,2).size() - opThreat1 - opThreat0;
         float myScore = myThreat2 + 10*myThreat1 + 100*myThreat0;
         float opScore = opThreat2 + 10*opThreat1 + 100*opThreat0;
-        Data.getInstance().heuristicTime += System.nanoTime() - start;
-        if (myScore == opScore)
-            return 0;
-        return (myScore - opScore) / (myScore + opScore + 1);
+
+        float score = (myScore - opScore) / (myScore + opScore + 1);
+
+        //float score = PositionEvaluate.getPosScore(board).score;
+        //data.heuristicTime += System.nanoTime() - start;
+        //data.heuristicMemo.put(boardMemo, score);
+        return score;
     }
 
-    private int global = 0;
+    //private int global = 0;
     class MoveIterator implements Iterator<int[]> {
         private TreeMap<Float, ArrayList<int[]>> moves;
         //private final int id;
@@ -149,7 +205,10 @@ public class EngineABSearch implements Runnable{
                     if (((board[x] >> (y * cellBitSize)) & mask) == empty){
                         int[] newBoard = Arrays.copyOf(board, board.length);
                         newBoard[x] |= player << (y * cellBitSize);
-                        float score = heuristic(newBoard);
+                        long start = System.nanoTime();
+                        //float score = heuristic(newBoard);
+                        float score = PositionEvaluate.getPosScore(newBoard).score;
+                        data.heuristicTimePart2 += System.nanoTime() - start;
                         if (score == (1.5 - player) * 2){
                             win = true;
                             moves.clear();
@@ -175,8 +234,8 @@ public class EngineABSearch implements Runnable{
                 if (score != moves.lastKey()){
                     near += moves.get(score).size();
                 }
-            Data.getInstance().nearCells[id] += near;
-            Data.getInstance().moveIterator[id]++;
+            data.nearCells[id] += near;
+            data.moveIterator[id]++;
         }
         @Override
         public boolean hasNext() {
