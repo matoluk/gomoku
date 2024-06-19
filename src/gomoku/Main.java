@@ -33,7 +33,7 @@ public class Main {
         }
     }
     private static Engine chooseEngine(Scanner scanner){
-        System.out.println("Choose engine (1-Random), (2-EngineTS), (3-EngineAB), (4-EngineABv2): ");
+        System.out.println("Choose engine (1-Random), (2-EngineTS), (3-EngineAB), (4-EngineABv2), (5-EngineABv3): ");
         assert (scanner.hasNextInt());
         int type = scanner.nextInt();
         switch (type) {
@@ -41,6 +41,7 @@ public class Main {
             case 2 -> {return new EngineTS();}
             case 3 -> {return new EngineAB(1);}
             case 4 -> {return new EngineAB(2);}
+            case 5 -> {return new EngineAB(3);}
             default -> throw new IllegalArgumentException();
         }
     }

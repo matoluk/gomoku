@@ -2,6 +2,7 @@ package gomoku;
 
 import jdk.jshell.spi.ExecutionControl;
 
+import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
@@ -20,7 +21,7 @@ public abstract class AbstractEngine implements Engine, SetBestMove{
     public static int getCell(int[] board, Move move){
         return ((board[move.x] >> (move.y * cellBitSize)) & mask);
     }
-    private void setCell(Move move, int stone){
+    void setCell(Move move, int stone){
         board[move.x] |= stone << (move.y * cellBitSize);
     }
 
@@ -43,6 +44,11 @@ public abstract class AbstractEngine implements Engine, SetBestMove{
 
     @Override
     public Object[] getMemory() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public Set<Move> getRelatedSquares() {
         throw new RuntimeException("Not implemented");
     }
 

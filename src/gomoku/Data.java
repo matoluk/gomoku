@@ -38,7 +38,7 @@ public class Data implements Serializable {
     public int[] nearCells = {0,0};
     public int[] abSearch = {0,0};
     public void printABsearch(int id){
-        System.out.println("Considered " + nearCells[id] + "\tSearched " + abSearch[id] + "\t= " + (abSearch[id]*100/nearCells[id]) + "%");
+        System.out.println("Considered " + nearCells[id] + "\tSearched " + abSearch[id] + "\t= " + ((abSearch[id]*100+1)/(nearCells[id]+1)) + "%");
         System.out.println("Avg " + (nearCells[id] / turns) + "\t" + (abSearch[id] / turns));
     }
     public long heuristicTime = 0;

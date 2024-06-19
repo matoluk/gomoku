@@ -47,6 +47,7 @@ public class PositionEvaluate {
             }
             if (p == 0)
                 continue;
+            assert p == 1 || p == 2;
 
             val5 /= p;
 

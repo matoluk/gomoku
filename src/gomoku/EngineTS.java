@@ -102,7 +102,7 @@ public class EngineTS extends AbstractEngine{
             }
 
         Random random = new Random();
-        if (bestMoves.isEmpty() && getCell(board, new Move(7, 7)) == empty)
+        if (bestMoves.isEmpty() && Arrays.stream(board).sum() == empty)
             bestMoves.add(new Move(7, 7));
         while (bestMoves.isEmpty()){
             int x = random.nextInt(Settings.size - 2) + 1;
