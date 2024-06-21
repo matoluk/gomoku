@@ -47,8 +47,8 @@ public class Data implements Serializable {
     public void printHeuristic(){
         System.out.println("Heuristic time per turn: " + (heuristicTime/1000000/turns) + "ms\tCount: " + heuristicCount + "\tMemoized: " + heuristicMemo.keySet().size());
     }
-    public void printTurnLength(){
-        System.out.println("Avg turn length: "+ (plDur[0] / turns));
+    public void printTurnLength(int id){
+        System.out.println("Avg turn length: "+ (plDur[id] / turns));
 
     }
     long lastTurn = 0;
@@ -60,8 +60,8 @@ public class Data implements Serializable {
         lastHeur = heuristicTime;
         lastHeur2 = heuristicTimePart2;
     }
-    int memo = 0, oldMemo = 0;
+    int memo = 0, oldMemo = 0, eval = 0;
     void printMemo(){
-        System.out.println("Memo: "+memo+"\toldMemo: "+oldMemo);
+        System.out.println("Heuristic: "+(eval+memo+oldMemo)+"\t(Eval: "+eval+"\tMemo: "+memo+"\toldMemo: "+oldMemo+")");
     }
 }

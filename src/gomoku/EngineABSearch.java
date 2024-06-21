@@ -35,13 +35,9 @@ public class EngineABSearch implements Runnable{
         long startTime = System.currentTimeMillis();
 
         int[] bestMove = bestMove(board, deep);
-        if (bestMove == null) {
-            //System.out.println("well played!");
-            bestMove = bestMove(board, 2);
-            if (bestMove == null) {
-                //System.out.println("bye!");
-                bestMove = bestMove(board, 1);
-            }
+        for (int i = deep - 1; bestMove == null && i > 0; i--) {
+            System.out.println("deep: " + i);
+            bestMove = bestMove(board, i);
         }
 
         engine.setBestMove(getMove(board, bestMove));
@@ -53,10 +49,10 @@ public class EngineABSearch implements Runnable{
         //System.out.println("  SCORE red: " + pl[0] + " blue: " +pl[1]);
 
         data.turns++;
-        //data.plDur[id] += System.currentTimeMillis() - startTime;
-        data.printABsearch(id);
+        data.plDur[id] += System.currentTimeMillis() - startTime;
+        //data.printABsearch(id);
         //data.printHeuristic();
-        //data.printTurnLength();
+        data.printTurnLength(id);
         //data.printTurn();
         data.printMemo();
     }
@@ -88,7 +84,7 @@ public class EngineABSearch implements Runnable{
     }
     private int[] bestMove(int[] board, int deep){
         float myMax = -1;
-        int[] bestMove = null;
+        ArrayList<int[]> bestMove = new ArrayList<>();
         Set<Move> relatedSquares = engine.getRelatedSquares();
         Iterator it;
         switch (heuristic) {
@@ -96,7 +92,7 @@ public class EngineABSearch implements Runnable{
             case 3 -> it = new MoveIterator2(board, myStone, relatedSquares);
             default -> throw new IllegalArgumentException();
         }
-        while (it.hasNext()){
+        while (it.hasNext() && myMax != 1){
             int[] newBoard;
             Set<Move> newRelSq = null;
             switch (heuristic) {
@@ -111,10 +107,20 @@ public class EngineABSearch implements Runnable{
             float score = abSearch(newBoard, deep-1, opponentStone, myMax, 1, newRelSq);
             if (score > myMax) {
                 myMax = score;
-                bestMove = newBoard;
+                bestMove.clear();
             }
+            if (score == myMax)
+                bestMove.add(newBoard);
         }
-        return bestMove;
+
+        if (myMax == -1 || bestMove.isEmpty())
+            return null;
+
+        Random random = new Random();
+        for (int[] bm : bestMove)
+            System.out.print(getMove(board, bm));
+        System.out.println(myMax);
+        return bestMove.get(random.nextInt(bestMove.size()));
     }
     private float abSearch(int[] board, int deep, int player, float max, float min, Set<Move> relatedSquares){
         data.abSearch[id]++;
@@ -157,14 +163,14 @@ public class EngineABSearch implements Runnable{
                 float next = abSearch(newBoard, deep - 1, 3 - player, Float.max(max, myMax), min, newRelSq);
                 if (next > myMax)
                     myMax = next;
-                if (myMax >= min || myMax == 1)    // less or equal
+                if (myMax > min || myMax == 1)    // less or equal
                     return myMax;
             }
             if (player == opponentStone) {
                 float next = abSearch(newBoard, deep - 1, 3 - player, max, Float.min(min, myMin), newRelSq);
                 if (next < myMin)
                     myMin = next;
-                if (myMin <= max || myMin == -1)    // less or equal
+                if (myMin < max || myMin == -1)    // less or equal
                     return myMin;
             }
         }
@@ -186,8 +192,10 @@ public class EngineABSearch implements Runnable{
             data.oldMemo++;
             posScore = oldMemo.get(arrBoard);
         }
-        else
+        else {
+            data.eval++;
             posScore = PositionEvaluate.getPosScore(board);
+        }
         memo.put(arrBoard, posScore);
         return posScore.score;
     }
