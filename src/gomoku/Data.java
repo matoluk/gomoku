@@ -33,32 +33,39 @@ public class Data implements Serializable {
             System.out.println("2. " + (win2Dur[1] / win2Turns[1]));
         }
     }
-    public int turns = 0;
+    public int[] turns = {0, 0};
     public int[] moveIterator = {0,0};
     public int[] nearCells = {0,0};
+    public void printSort(int id) {
+        System.out.println(" Sort avg " + (nearCells[id] / moveIterator[id]));
+    }
     public int[] abSearch = {0,0};
     public void printABsearch(int id){
         System.out.println("Considered " + nearCells[id] + "\tSearched " + abSearch[id] + "\t= " + ((abSearch[id]*100+1)/(nearCells[id]+1)) + "%");
-        System.out.println("Avg " + (nearCells[id] / turns) + "\t" + (abSearch[id] / turns));
+        System.out.println("Avg " + (nearCells[id] / turns[id]) + "\t" + (abSearch[id] / turns[id]));
     }
-    public long heuristicTime = 0;
-    public long heuristicTimePart2 = 0;
-    public int heuristicCount = 0;
-    public void printHeuristic(){
-        System.out.println("Heuristic time per turn: " + (heuristicTime/1000000/turns) + "ms\tCount: " + heuristicCount + "\tMemoized: " + heuristicMemo.keySet().size());
+    public long[] heuristicTime = {0, 0};
+    public long[] heuristicTimePart2 = {0, 0};
+    public int[] heuristicCount = {0, 0};
+    public void printHeuristic(int id){
+        System.out.println("Heuristic time per turn: " + (heuristicTime[id]/1000000/turns[id]) + "ms\tCount per turn: " + heuristicCount[id]/turns[id] /*+ "\tMemoized: " + heuristicMemo.keySet().size()*/);
     }
     public void printTurnLength(int id){
-        System.out.println("Avg turn length: "+ (plDur[id] / turns));
-
+        System.out.println("Avg turn length: "+ (plDur[id] / turns[id]));
     }
-    long lastTurn = 0;
-    long lastHeur = 0;
-    long lastHeur2 = 0;
-    public void printTurn(){
-        System.out.println("Last turn: "+ (plDur[0] - lastTurn) + "\t(Heuristic: " + (heuristicTime - lastHeur)/1000000 + ")\t(Turn sort: " + (heuristicTimePart2 - lastHeur2)/1000000 + ")");
-        lastTurn = plDur[0];
-        lastHeur = heuristicTime;
-        lastHeur2 = heuristicTimePart2;
+    public void printAvgHeur(int id){
+        System.out.println("Avg turn: "+ (plDur[id] / turns[id]) +
+                "\t(Heur time: " + (heuristicTime[id]/1000000/turns[id]) + "\tcount: " + heuristicCount[id]/turns[id] +
+                ")\t(Turn sort: " + (heuristicTimePart2[id]/1000000/turns[id]) + ")");
+    }
+    long[] lastTurn = {0, 0};
+    long[] lastHeur = {0, 0};
+    long[] lastHeur2 = {0, 0};
+    public void printTurn(int id){
+        System.out.println("Last turn: "+ (plDur[id] - lastTurn[id]) + "\t(Heuristic: " + (heuristicTime[id] - lastHeur[id])/1000000 + ")\t(Turn sort: " + (heuristicTimePart2[id] - lastHeur2[id])/1000000 + ")");
+        lastTurn[id] = plDur[id];
+        lastHeur[id] = heuristicTime[id];
+        lastHeur2[id] = heuristicTimePart2[id];
     }
     int memo = 0, oldMemo = 0, eval = 0;
     void printMemo(){

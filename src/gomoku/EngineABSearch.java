@@ -48,13 +48,15 @@ public class EngineABSearch implements Runnable{
         //float[] pl = PositionEvaluate.getPosScore(fakeBoard).pl;
         //System.out.println("  SCORE red: " + pl[0] + " blue: " +pl[1]);
 
-        data.turns++;
-        data.plDur[id] += System.currentTimeMillis() - startTime;
+        data.turns[id]++;
+        //data.plDur[id] += System.currentTimeMillis() - startTime;
         //data.printABsearch(id);
-        //data.printHeuristic();
-        data.printTurnLength(id);
+        //data.printHeuristic(id);
+        //data.printTurnLength(id);
         //data.printTurn();
-        data.printMemo();
+        data.printSort(id);
+        //    data.printMemo();
+        data.printAvgHeur(id);
     }
     private Move getMove(int[] board, int[] newBoard){
         for (int x = 0; x < board.length; x++){
@@ -126,15 +128,15 @@ public class EngineABSearch implements Runnable{
         data.abSearch[id]++;
         //System.out.print(deep + "," + max + "," + min + "|");
 
-        //long start = System.nanoTime();
+        long start = System.nanoTime();
         float score;
         switch (heuristic) {
             case 1 -> score = heuristic(board);
             case 2, 3 -> score = heuristic2(board);
             default -> throw new IllegalArgumentException();
         }
-        //data.heuristicCount++;
-        //data.heuristicTime += System.nanoTime() - start;
+        data.heuristicCount[id]++;
+        data.heuristicTime[id] += System.nanoTime() - start;
 
         if (deep <= 0 || score == 1 || score == -1)
             return score;
@@ -182,21 +184,21 @@ public class EngineABSearch implements Runnable{
         throw new IllegalArgumentException("player should be 1 or 2");
     }
     private float heuristic2(int[] board){
-        ArrayInt arrBoard = new ArrayInt(board);
+        /*ArrayInt arrBoard = new ArrayInt(board);
         if (memo.containsKey(arrBoard)) {
             data.memo++;
             return memo.get(arrBoard).score;
-        }
+        }*/
         PositionScore posScore;
-        if (oldMemo.containsKey(arrBoard)) {
+        /*if (oldMemo.containsKey(arrBoard)) {
             data.oldMemo++;
             posScore = oldMemo.get(arrBoard);
         }
         else {
-            data.eval++;
-            posScore = PositionEvaluate.getPosScore(board);
-        }
-        memo.put(arrBoard, posScore);
+            data.eval++;*/
+        posScore = PositionEvaluate.getPosScore(board);
+        //}
+        //memo.put(arrBoard, posScore);
         return posScore.score;
     }
     private float heuristic(int[] board){
@@ -238,10 +240,12 @@ public class EngineABSearch implements Runnable{
         return score;
     }
 
-    static class MoveIterator2 implements Iterator<Move> {
+    class MoveIterator2 implements Iterator<Move> {
         private final TreeMap<Integer, Stack<Move>> moves = new TreeMap<>(Comparator.reverseOrder()); //reverse order?
         public MoveIterator2(int[] board, int player, Set<Move> relSq) {
             int[][] points = new int[Settings.size][Settings.size];
+
+            long start = System.nanoTime();
 
             LineIterator it = new LineIterator(board);
             while (it.hasNext()) {
@@ -278,6 +282,10 @@ public class EngineABSearch implements Runnable{
                     moves.put(score, new Stack<>());
                 moves.get(score).push(move);
             }
+
+            data.heuristicTimePart2[id] += System.nanoTime() - start;
+            data.nearCells[id] += relSq.size();
+            data.moveIterator[id]++;
         }
         @Override
         public boolean hasNext() {
@@ -316,7 +324,7 @@ public class EngineABSearch implements Runnable{
                         long start = System.nanoTime();
                         //float score = heuristic(newBoard);
                         float score = PositionEvaluate.getPosScore(newBoard).score;
-                        data.heuristicTimePart2 += System.nanoTime() - start;
+                        data.heuristicTimePart2[id] += System.nanoTime() - start;
                         if (score == (1.5 - player) * 2){
                             win = true;
                             moves.clear();
