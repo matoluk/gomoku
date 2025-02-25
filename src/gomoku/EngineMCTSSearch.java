@@ -13,6 +13,7 @@ public class EngineMCTSSearch implements Runnable {
     private static final int SIMULATIONS = 100000;
     private static final double EXPLORATION_PARAM = 1; //Math.sqrt(2);
     private static final Random rand = new Random();
+    private final Data data = Data.getInstance();
 
     EngineMCTSSearch(int[] board, SetBestMove engine, int myId) {
         this.id = myId;
@@ -25,7 +26,14 @@ public class EngineMCTSSearch implements Runnable {
 
     @Override
     public void run() {
+        long startTime = System.currentTimeMillis();
+
         Move bestMove = mctsSearch();
+
+        data.plDur[id] += System.currentTimeMillis() - startTime;
+        System.out.println("move time: " + data.plDur[id]);
+        System.out.println("evaluateBoard time: " + data.heuristicTime[id]);
+
         engine.setBestMove(bestMove);
         engine.stop();
     }
@@ -39,9 +47,10 @@ public class EngineMCTSSearch implements Runnable {
             Move move = selectMoveUCT(result, plays, i+1, possibleMoves);
 
             plays.put(move, plays.getOrDefault(move, 0) + 1);
-            result.put(move, result.getOrDefault(move, 0) + simulate(board, move, myStone));
+            result.put(move, result.getOrDefault(move, 0) + simulate(board, move, myStone, possibleMoves));
         }
 
+        // Only print:
         for (int y = 0; y < Settings.size; y++) {
             for (int x = 0; x < Settings.size; x++) {
                 Move move = new Move(x, y);
@@ -61,39 +70,49 @@ public class EngineMCTSSearch implements Runnable {
     }
 
     private Move selectMoveUCT(Map<Move, Integer> result, Map<Move, Integer> plays, int totalSimulations, List<Move> possibleMoves) {
-        double maxValue = possibleMoves.stream()
-                .mapToDouble(m -> {
-                    int wi = result.getOrDefault(m, 0);
-                    int ni = plays.getOrDefault(m, 1);
-                    return (double) wi / ni + EXPLORATION_PARAM * Math.sqrt(Math.log(totalSimulations) / ni);
-                })
-                .max()
-                .orElse(Double.NEGATIVE_INFINITY);
+        double maxValue = Double.NEGATIVE_INFINITY;
+        List<Move> bestMoves = new ArrayList<>();
 
-        List<Move> bestMoves = possibleMoves.stream()
-                .filter(m -> {
-                    int wi = result.getOrDefault(m, 0);
-                    int ni = plays.getOrDefault(m, 1);
-                    double value = (double) wi / ni + EXPLORATION_PARAM * Math.sqrt(Math.log(totalSimulations) / ni);
-                    return value == maxValue;
-                })
-                .toList();
+        for (Move m : possibleMoves) {
+            int wi = result.getOrDefault(m, 0);
+            int ni = plays.getOrDefault(m, 1);
+            double value = (double) wi / ni + EXPLORATION_PARAM * Math.sqrt(Math.log(totalSimulations) / ni);
+
+            if (value > maxValue) {
+                maxValue = value;
+                bestMoves.clear();
+                bestMoves.add(m);
+            } else if (value == maxValue) {
+                bestMoves.add(m);
+            }
+        }
 
         return bestMoves.isEmpty() ? possibleMoves.get(rand.nextInt(possibleMoves.size())) : bestMoves.get(rand.nextInt(bestMoves.size()));
     }
 
 
-    private int simulate(int[] board, Move move, int player) {
+    private int simulate(int[] board, Move move, int player, List<Move> allMoves) {
         int[] simBoard = newBoard(board, move, player);
-        int currentPlayer = opponentStone;
+        List<Move> moves = new ArrayList<>(allMoves);
+        int indexToRemove = moves.indexOf(move);
+        moves.set(indexToRemove, moves.get(moves.size() - 1));
+        moves.remove(moves.size() - 1);
+        int currentPlayer = myStone + opponentStone - player;
 
         int result;
+
+        long start = System.currentTimeMillis(); //////////////////
         for (result = evaluateBoard(simBoard); result == 2; result = evaluateBoard(simBoard)) {
-            List<Move> moves = getPossibleMoves(simBoard);
-            //if (moves.isEmpty()) break;
-            Move randomMove = moves.get(rand.nextInt(moves.size()));
-            simBoard = newBoard(simBoard, randomMove, currentPlayer);
-            currentPlayer = (currentPlayer == myStone) ? opponentStone : myStone;
+            data.heuristicTime[id] += System.currentTimeMillis() - start; //////////////////
+
+            int randomIdx = rand.nextInt(moves.size());
+            Move randomMove = moves.get(randomIdx);
+            moves.set(randomIdx, moves.get(moves.size() - 1));
+            moves.remove(moves.size() - 1);
+            simBoard[randomMove.x] |= currentPlayer << (randomMove.y * cellBitSize);
+            currentPlayer = myStone + opponentStone - currentPlayer;
+
+            start = System.currentTimeMillis(); //////////////////
         }
         return result;
     }
@@ -109,8 +128,9 @@ public class EngineMCTSSearch implements Runnable {
         List<Move> moves = new ArrayList<>();
         for (int x = 0; x < Settings.size; x++) {
             for (int y = 0; y < Settings.size; y++) {
-                if (getCell(board, new Move(x, y)) == empty) {
-                    moves.add(new Move(x, y));
+                Move move = new Move(x, y);
+                if (getCell(board, move) == empty) {
+                    moves.add(move);
                 }
             }
         }
