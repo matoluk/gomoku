@@ -1,8 +1,6 @@
 package gomoku;
 
-import java.security.KeyPair;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static gomoku.AbstractEngine.*;
 
@@ -11,7 +9,7 @@ public class EngineMCTSSearch implements Runnable {
     private final SetBestMove engine;
     private final int id;
     private static final int SIMULATIONS = 100000;
-    private static final double EXPLORATION_PARAM = 1; //Math.sqrt(2);
+    private static final double EXPLORATION_PARAM = Math.sqrt(2); //1
     private static final Random rand = new Random();
     private final Data data = Data.getInstance();
 
@@ -30,9 +28,10 @@ public class EngineMCTSSearch implements Runnable {
 
         Move bestMove = mctsSearch();
 
-        data.plDur[id] += System.currentTimeMillis() - startTime;
+        data.plDur[id] = System.currentTimeMillis() - startTime;
+        //data.turns[id]++;
         System.out.println("move time: " + data.plDur[id]);
-        System.out.println("evaluateBoard time: " + data.heuristicTime[id]);
+        //System.out.println("evaluateBoard time: " + data.heuristicTime[id]);
 
         engine.setBestMove(bestMove);
         engine.stop();
@@ -44,7 +43,7 @@ public class EngineMCTSSearch implements Runnable {
         List<Move> possibleMoves = getPossibleMoves(board);
 
         for (int i = 0; i < SIMULATIONS; i++) {
-            Move move = selectMoveUCT(result, plays, i+1, possibleMoves);
+            Move move = selectMoveUCT(result, plays, i + 1, possibleMoves);
 
             plays.put(move, plays.getOrDefault(move, 0) + 1);
             result.put(move, result.getOrDefault(move, 0) + simulate(board, move, myStone, possibleMoves));
@@ -97,24 +96,19 @@ public class EngineMCTSSearch implements Runnable {
         int indexToRemove = moves.indexOf(move);
         moves.set(indexToRemove, moves.get(moves.size() - 1));
         moves.remove(moves.size() - 1);
-        int currentPlayer = myStone + opponentStone - player;
 
-        int result;
-
-        long start = System.currentTimeMillis(); //////////////////
-        for (result = evaluateBoard(simBoard); result == 2; result = evaluateBoard(simBoard)) {
-            data.heuristicTime[id] += System.currentTimeMillis() - start; //////////////////
-
+        while (!moves.isEmpty()) {
+            player = myStone + opponentStone - player;
             int randomIdx = rand.nextInt(moves.size());
             Move randomMove = moves.get(randomIdx);
             moves.set(randomIdx, moves.get(moves.size() - 1));
             moves.remove(moves.size() - 1);
-            simBoard[randomMove.x] |= currentPlayer << (randomMove.y * cellBitSize);
-            currentPlayer = myStone + opponentStone - currentPlayer;
+            simBoard[randomMove.x] |= player << (randomMove.y * cellBitSize);
 
-            start = System.currentTimeMillis(); //////////////////
+            if (isGameEnd(simBoard, randomMove))
+                return player == myStone ? 1 : -1;
         }
-        return result;
+        return 0;
     }
 
     private int[] newBoard(int[] oldBoard, Move move, int stone) {
@@ -137,21 +131,26 @@ public class EngineMCTSSearch implements Runnable {
         return moves;
     }
 
-    private int evaluateBoard(int[] board) {
-        LineOfSquaresIterator it = new LineOfSquaresIterator(board, 5);
-        while (it.hasNext()) {
-            int value = it.next().values;
-            if (value == 341)
-                return 1; //win
-            if (value == 682)
-                return -1; //lose
-        }
-        for (int y = 0; y < Settings.size; y++) {
-            for (int x = 0; x < Settings.size; x++) {
-                if (getCell(board, new Move(x, y)) == empty)
-                    return 2; //game not over
+    private boolean isGameEnd(int[] board, Move lastMove) {
+        int player = getCell(board, lastMove);
+        int[] xDir = {1, 0, 1, 1};
+        int[] yDir = {0, 1, 1, -1};
+        for (int dir = 0; dir < 4; dir++) {
+            int count = 0;
+            for (Move pos = new Move(lastMove.x - 5 * xDir[dir], lastMove.y - 5 * yDir[dir]);
+                 pos.x != lastMove.x + 4 * xDir[dir] || pos.y != lastMove.y + 4 * yDir[dir]; ) {
+                pos.x += xDir[dir];
+                pos.y += yDir[dir];
+                if (pos.x < 0 || pos.x >= Settings.size || pos.y < 0 || pos.y >= Settings.size)
+                    continue;
+                if (getCell(board, pos) == player)
+                    count++;
+                else
+                    count = 0;
+                if (count >= 5)
+                    return true;
             }
         }
-        return 0; //draw
+        return false;
     }
 }
