@@ -21,6 +21,10 @@ public abstract class AbstractEngine implements Engine, SetBestMove{
     public static int getCell(int[] board, Move move){
         return ((board[move.x] >> (move.y * cellBitSize)) & mask);
     }
+    public static void makeMove(int[] board, Move move, int stone){
+        assert getCell(board, move) == empty;
+        board[move.x] |= stone << (move.y * cellBitSize);
+    }
     void setCell(Move move, int stone){
         board[move.x] |= stone << (move.y * cellBitSize);
     }

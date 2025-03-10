@@ -8,15 +8,17 @@ public class EngineMCTSSearch implements Runnable {
     private final int[] board;
     private final SetBestMove engine;
     private final int id;
-    private static final int SIMULATIONS = 100000;
-    private static final double EXPLORATION_PARAM = Math.sqrt(2); //1
+    private static final int SIMULATIONS = 300000;
+    private static final double EXPLORATION_PARAM = 1; //Math.sqrt(2);
     private static final Random rand = new Random();
     private final Data data = Data.getInstance();
+    private final Node root;
 
     EngineMCTSSearch(int[] board, SetBestMove engine, int myId) {
         this.id = myId;
         this.board = board;
         this.engine = engine;
+        this.root = new Node(null, null, board, opponentStone, false);
 
         Thread search = new Thread(this);
         search.start();
@@ -36,66 +38,53 @@ public class EngineMCTSSearch implements Runnable {
         engine.setBestMove(bestMove);
         engine.stop();
     }
+    void printTree(Node node, int deep) {
+        if (node.visits < 2000)
+            return;
+        for (int i = 0; i < deep; i++)
+            System.out.print(" ");
+        System.out.println(node);
+        for (Node child : node.children)
+            printTree(child, deep + 1);
+    }
 
     private Move mctsSearch() {
-        Map<Move, Integer> result = new HashMap<>();
-        Map<Move, Integer> plays = new HashMap<>();
-        List<Move> possibleMoves = getPossibleMoves(board);
-
         for (int i = 0; i < SIMULATIONS; i++) {
-            Move move = selectMoveUCT(result, plays, i + 1, possibleMoves);
-
-            plays.put(move, plays.getOrDefault(move, 0) + 1);
-            result.put(move, result.getOrDefault(move, 0) + simulate(board, move, myStone, possibleMoves));
+            Node node = selectNode(root);
+            int result = node.score == 2 ? simulate(node.board, node.player) : node.score;
+            backPropagate(node, result);
         }
-
-        // Only print:
-        for (int y = 0; y < Settings.size; y++) {
-            for (int x = 0; x < Settings.size; x++) {
-                Move move = new Move(x, y);
-                String out = "";
-                if (possibleMoves.contains(move)) {
-                    double winrt = (double) result.getOrDefault(move, 0) / plays.getOrDefault(move, 1);
-                    out = plays.getOrDefault(move, 0) + ", " + String.format("%.2f", winrt);
-                }
-                System.out.printf("%-14s", out);
-            }
-            System.out.println();
-        }
-
-        return possibleMoves.stream()
-                .max(Comparator.comparingDouble(m -> result.getOrDefault(m, 0) / (double) plays.getOrDefault(m, 1)))
-                .orElse(new Move(0, 0));
+        printTree(root, 0);
+        Move best = root.getBestMove();
+        for (Node n : root.children)
+            if (n.move == best)
+                System.out.println("*"+n);
+        return best;
     }
-
-    private Move selectMoveUCT(Map<Move, Integer> result, Map<Move, Integer> plays, int totalSimulations, List<Move> possibleMoves) {
-        double maxValue = Double.NEGATIVE_INFINITY;
-        List<Move> bestMoves = new ArrayList<>();
-
-        for (Move m : possibleMoves) {
-            int wi = result.getOrDefault(m, 0);
-            int ni = plays.getOrDefault(m, 1);
-            double value = (double) wi / ni + EXPLORATION_PARAM * Math.sqrt(Math.log(totalSimulations) / ni);
-
-            if (value > maxValue) {
-                maxValue = value;
-                bestMoves.clear();
-                bestMoves.add(m);
-            } else if (value == maxValue) {
-                bestMoves.add(m);
+    private Node selectNode(Node node) {
+        while (!node.children.isEmpty()) {
+            node = node.selectBestChild();
+        }
+        if (node.visits == 1) {
+            node.expand();
+            if (!node.children.isEmpty()) {
+                node = node.children.get(rand.nextInt(node.children.size()));
             }
         }
-
-        return bestMoves.isEmpty() ? possibleMoves.get(rand.nextInt(possibleMoves.size())) : bestMoves.get(rand.nextInt(bestMoves.size()));
+        return node;
     }
 
+    private void backPropagate(Node node, int result) {
+        while (node != null) {
+            node.visits++;
+            node.wins += node.player == myStone ? result : -result;
+            node = node.parent;
+        }
+    }
 
-    private int simulate(int[] board, Move move, int player, List<Move> allMoves) {
-        int[] simBoard = newBoard(board, move, player);
-        List<Move> moves = new ArrayList<>(allMoves);
-        int indexToRemove = moves.indexOf(move);
-        moves.set(indexToRemove, moves.get(moves.size() - 1));
-        moves.remove(moves.size() - 1);
+    private int simulate(int[] board, int player) {
+        int[] simBoard = Arrays.copyOf(board, board.length);
+        List<Move> moves = getPossibleMoves(simBoard);
 
         while (!moves.isEmpty()) {
             player = myStone + opponentStone - player;
@@ -103,7 +92,7 @@ public class EngineMCTSSearch implements Runnable {
             Move randomMove = moves.get(randomIdx);
             moves.set(randomIdx, moves.get(moves.size() - 1));
             moves.remove(moves.size() - 1);
-            simBoard[randomMove.x] |= player << (randomMove.y * cellBitSize);
+            makeMove(simBoard, randomMove, player);
 
             if (isGameEnd(simBoard, randomMove))
                 return player == myStone ? 1 : -1;
@@ -152,5 +141,61 @@ public class EngineMCTSSearch implements Runnable {
             }
         }
         return false;
+    }
+
+    private class Node {
+        Node parent;
+        Move move;
+        int[] board;
+        int player;
+        int wins = 0;
+        int visits = 0;
+        int score = 2; //2=progres, 1=win, 0=draw, -1=loss
+        List<Node> children = new ArrayList<>();
+
+        Node(Node parent, Move move, int[] board, int player, boolean leaf) {
+            this.parent = parent;
+            this.move = move;
+            this.board = Arrays.copyOf(board, board.length);
+            this.player = player;
+
+            if (move != null && isGameEnd(board, move))
+                score = player == myStone ? 1 : -1;
+            else if (leaf)
+                score = 0;
+        }
+
+        void expand() {
+            if (score != 2)
+                return;
+            List<Move> moves = getPossibleMoves(board);
+            for (Move m : moves) {
+                int[] newBoard = newBoard(board, m, myStone + opponentStone - player);
+                children.add(new Node(this, m, newBoard, myStone + opponentStone - player, moves.size() == 1));
+            }
+        }
+
+        Node selectBestChild() {
+            return children.stream()
+                    .max(Comparator.comparingDouble(n -> (double) n.wins / (n.visits + 1) +
+                            EXPLORATION_PARAM * Math.sqrt(Math.log(visits + 1) / (n.visits + 1))))
+                    .orElse(children.get(rand.nextInt(children.size())));
+        }
+
+        Move getBestMove() {
+            return children.stream()
+                    .max(Comparator.comparingDouble(n -> (double) n.wins / (n.visits + 1)))
+                    .map(n -> n.move)
+                    .orElse(new Move(0, 0));
+        }
+        @Override
+        public String toString() {
+            return "Node{" +
+                    "move=" + move +
+                    ", wins=" + wins +
+                    ", visits=" + visits +
+                    ", children=" + children.size() +
+                    '}';
+        }
     }
 }
